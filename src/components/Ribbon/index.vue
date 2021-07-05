@@ -68,7 +68,7 @@ import * as L from "leaflet";
 import "leaflet.chinatmsproviders";
 import data from "./data/coords.js";
 import {pipe1} from "./data/data.js"
-import "./coponents/leaflet.hotline";
+import "./coponents/heat-line";
 import data2 from "./data/test.js"
 import {addHeatLine} from "@/api/heat-line";
 
@@ -193,7 +193,7 @@ export default {
       for (let i = 0;i<l2;i++){
         pipe1[i].push(170+Math.round(Math.random()*i));
       }
-      let hotlineLayer = L.hotline(pipe1, {
+      let heatLineLayer = L.heatLine(pipe1, {
         min: 100,
         max: 250,
         palette: {
@@ -206,10 +206,10 @@ export default {
         outlineWidth: 1,
       });
 
-      // let bounds1 = hotlineLayer.getBounds();
+      // let bounds1 = heatLineLayer.getBounds();
       //
       // this.map.fitBounds(bounds1);
-      hotlineLayer
+      heatLineLayer
         .bindPopup("Thanks for clicking.<br/>Play with me!")
         .addTo(this.map);
     },
@@ -219,7 +219,7 @@ export default {
       for (let i = 0;i<length;i++){
         data2[i].push(200+Math.round(Math.random()*i));
       }
-      var hotlineLayer = L.hotline(data2, {
+      var heatLineLayer = L.heatLine(data2, {
         min: 150,
         max: 350,
         palette: {
@@ -232,9 +232,9 @@ export default {
         outlineWidth: 1,
       });
 
-      var bounds = hotlineLayer.getBounds();
+      var bounds = heatLineLayer.getBounds();
       this.map.fitBounds(bounds);
-      hotlineLayer
+      heatLineLayer
         .bindPopup("Thanks for clicking.<br/>Play with me!")
         .addTo(this.map);
 
@@ -243,7 +243,7 @@ export default {
           document.getElementById(value).addEventListener("input", function () {
             var style = {};
             style[value] = parseInt(this.value, 10);
-            hotlineLayer.setStyle(style).redraw();
+            heatLineLayer.setStyle(style).redraw();
           });
         }
       );
@@ -251,7 +251,7 @@ export default {
       document
         .getElementById("outlineColor")
         .addEventListener("input", function () {
-          hotlineLayer.setStyle({ outlineColor: this.value }).redraw();
+          heatLineLayer.setStyle({ outlineColor: this.value }).redraw();
         });
 
       var paletteColor1 = document.getElementById("paletteColor1");
@@ -261,7 +261,7 @@ export default {
         element.addEventListener("input", updatePalette);
       });
       function updatePalette() {
-        hotlineLayer
+        heatLineLayer
           .setStyle({
             palette: {
               0.0: paletteColor1.value,
@@ -279,7 +279,7 @@ export default {
       for (let i = 0;i<length;i++){
         data2[i].push(200+Math.round(Math.random()*i));
       }
-      var hotlineLayer = L.hotline(data2, {
+      var heatLineLayer = L.heatLine(data2, {
         min: 150,
         max: 350,
         palette: {
@@ -292,9 +292,9 @@ export default {
         outlineWidth: 1,
       });
 
-      var bounds = hotlineLayer.getBounds();
+      var bounds = heatLineLayer.getBounds();
       this.map.fitBounds(bounds);
-      hotlineLayer
+      heatLineLayer
           .bindPopup("Thanks for clicking.<br/>Play with me!")
           .addTo(this.map);
 
@@ -303,7 +303,7 @@ export default {
             document.getElementById(value).addEventListener("input", function () {
               var style = {};
               style[value] = parseInt(this.value, 10);
-              hotlineLayer.setStyle(style).redraw();
+              heatLineLayer.setStyle(style).redraw();
             });
           }
       );
@@ -311,7 +311,7 @@ export default {
       document
           .getElementById("outlineColor")
           .addEventListener("input", function () {
-            hotlineLayer.setStyle({ outlineColor: this.value }).redraw();
+            heatLineLayer.setStyle({ outlineColor: this.value }).redraw();
           });
 
       var paletteColor1 = document.getElementById("paletteColor1");
@@ -321,7 +321,7 @@ export default {
         element.addEventListener("input", updatePalette);
       });
       function updatePalette() {
-        hotlineLayer
+        heatLineLayer
             .setStyle({
               palette: {
                 0.0: paletteColor1.value,

@@ -1,8 +1,3 @@
-/*
- (c) 2017, iosphere GmbH
- Leaflet.hotline, a Leaflet plugin for drawing gradients along polylines.
- https://github.com/iosphere/Leaflet.hotline/
-*/
 (function(root, plugin) {
     if (typeof define === "function" && define.amd) {
         define([ "leaflet" ], plugin);
@@ -12,12 +7,12 @@
         plugin(root.L);
     }
 })(this, function(L) {
-    if (L.Hotline) {
+    if (L.HeatLine) {
         return L;
     }
-    var Hotline = function(canvas) {
-        if (!(this instanceof Hotline)) {
-            return new Hotline(canvas);
+    var HeatLine = function(canvas) {
+        if (!(this instanceof HeatLine)) {
+            return new HeatLine(canvas);
         }
         var defaultPalette = {
             0: "green",
@@ -34,9 +29,10 @@
         this._min = 0;
         this._max = 1;
         this._data = [];
+        this._extraValue = [];
         this.palette(defaultPalette);
     };
-    Hotline.prototype = {
+    HeatLine.prototype = {
         width: function(width) {
             this._width = width;
             return this;
@@ -81,6 +77,10 @@
             this._data = data;
             return this;
         },
+        extraValue: function(extraValue) {
+            this._extraValue = extraValue;
+            return this;
+        },
         add: function(path) {
             this._data.push(path);
             return this;
@@ -90,7 +90,7 @@
             ctx.globalCompositeOperation = "source-over";
             ctx.lineCap = "round";
             this._drawOutline(ctx);
-            this._drawHotline(ctx);
+            this._drawHeatLine(ctx);
             return this;
         },
         getRGBForValue: function(value) {
@@ -103,10 +103,11 @@
             if (this._outlineWidth) {
                 for (i = 0, dataLength = this._data.length; i < dataLength; i++) {
                     path = this._data[i];
-                    ctx.lineWidth = this._weight + 2 * this._outlineWidth;
+                    
                     for (j = 1, pathLength = path.length; j < pathLength; j++) {
                         pointStart = path[j - 1];
                         pointEnd = path[j];
+                        ctx.lineWidth = this._extraValue[j] + 2 * this._outlineWidth;
                         ctx.strokeStyle = this._outlineColor;
                         ctx.beginPath();
                         ctx.moveTo(pointStart.x, pointStart.y);
@@ -116,9 +117,11 @@
                 }
             }
         },
-        _drawHotline: function(ctx) {
+        _drawHeatLine: function(ctx) {
             var i, j, dataLength, path, pathLength, pointStart, pointEnd, gradient, gradientStartRGB, gradientEndRGB;
             ctx.lineWidth = this._weight;
+            console.log(this._data);
+            console.log(this._extraValue);
             for (i = 0, dataLength = this._data.length; i < dataLength; i++) {
                 path = this._data[i];
                 for (j = 1, pathLength = path.length; j < pathLength; j++) {
@@ -130,6 +133,7 @@
                     gradient.addColorStop(0, "rgb(" + gradientStartRGB.join(",") + ")");
                     gradient.addColorStop(1, "rgb(" + gradientEndRGB.join(",") + ")");
                     ctx.strokeStyle = gradient;
+                    ctx.lineWidth = this._extraValue[j];
                     ctx.beginPath();
                     ctx.moveTo(pointStart.x, pointStart.y);
                     ctx.lineTo(pointEnd.x, pointEnd.y);
@@ -141,12 +145,12 @@
     var Renderer = L.Canvas.extend({
         _initContainer: function() {
             L.Canvas.prototype._initContainer.call(this);
-            this._hotline = new Hotline(this._container);
+            this._heatLine = new HeatLine(this._container);
         },
         _update: function() {
             L.Canvas.prototype._update.call(this);
-            this._hotline.width(this._container.width);
-            this._hotline.height(this._container.height);
+            this._heatLine.width(this._container.width);
+            this._heatLine.height(this._container.height);
         },
         _updatePoly: function(layer) {
             if (!this._drawing) {
@@ -157,26 +161,29 @@
                 return;
             }
             this._updateOptions(layer);
-            this._hotline.data(parts).draw();
+            this._heatLine.data(parts).draw();
         },
         _updateOptions: function(layer) {
             if (layer.options.min != null) {
-                this._hotline.min(layer.options.min);
+                this._heatLine.min(layer.options.min);
             }
             if (layer.options.max != null) {
-                this._hotline.max(layer.options.max);
+                this._heatLine.max(layer.options.max);
             }
             if (layer.options.weight != null) {
-                this._hotline.weight(layer.options.weight);
+                this._heatLine.weight(layer.options.weight);
             }
             if (layer.options.outlineWidth != null) {
-                this._hotline.outlineWidth(layer.options.outlineWidth);
+                this._heatLine.outlineWidth(layer.options.outlineWidth);
             }
             if (layer.options.outlineColor != null) {
-                this._hotline.outlineColor(layer.options.outlineColor);
+                this._heatLine.outlineColor(layer.options.outlineColor);
+            }
+            if (layer.options.extraValue != null) {
+                this._heatLine.extraValue(layer.options.extraValue);
             }
             if (layer.options.palette) {
-                this._hotline.palette(layer.options.palette);
+                this._heatLine.palette(layer.options.palette);
             }
         }
     });
@@ -209,11 +216,11 @@
             }
         }
     };
-    L.Hotline = L.Polyline.extend({
-        statics: {
-            Renderer: Renderer,
-            renderer: renderer
-        },
+    L.HeatLine = L.Polyline.extend({
+        // statics: {
+        //     Renderer: Renderer,
+        //     renderer: renderer
+        // },
         options: {
             renderer: renderer(),
             min: 0,
@@ -225,10 +232,13 @@
             },
             weight: 5,
             outlineColor: "black",
-            outlineWidth: 1
+            outlineWidth: 1,
+            noClip: true,
+            smoothFactor: 0,
+            extraValue:[]
         },
         getRGBForValue: function(value) {
-            return this._renderer._hotline.getRGBForValue(value);
+            return this._renderer._heatLine.getRGBForValue(value);
         },
         _projectLatlngs: function(latlngs, result, projectedBounds) {
             var flat = latlngs[0] instanceof L.LatLng, len = latlngs.length, i, ring;
@@ -268,13 +278,15 @@
                     }
                 }
             }
+            console.log(this);
+            console.log("压缩后点："+parts);
         },
         _clickTolerance: function() {
             return this.options.weight / 2 + this.options.outlineWidth + (L.Browser.touch ? 10 : 0);
         }
     });
-    L.hotline = function(latlngs, options) {
-        return new L.Hotline(latlngs, options);
+    L.heatLine = function(latlngs, options) {
+        return new L.HeatLine(latlngs, options);
     };
     return L;
 });

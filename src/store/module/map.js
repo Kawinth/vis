@@ -6,6 +6,7 @@ const state = {
   serverChanged: false,
   pipeList: [],
   infoVisible: false,
+  focusHeatLineNodes: [],
 }
 
 const mutations = {
@@ -20,7 +21,10 @@ const mutations = {
   },
   SET_INFO_VISIBLE:(state,visible) => {
     state.infoVisible = visible;
-  }
+  },
+  SET_HEAT_LINE_NODES:(state,nodes) => {
+    state.focusHeatLineNodes = nodes;
+  },
 }
 
 const actions = {

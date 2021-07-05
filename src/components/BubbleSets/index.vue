@@ -74,6 +74,8 @@ export default {
       var debugFor = pathA;
 
       function update() {
+        console.log(rectanglesA);
+        console.log(rectanglesB);
         updateOutline(rectanglesA, rectanglesB, "crimson", pathA);
         //console.log(mySvg);
         // updateOutline(rectanglesB, rectanglesA, "cornflowerblue", pathB);

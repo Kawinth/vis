@@ -142,6 +142,7 @@ export default {
         } else {
           addHeatLine(this.form).then((res) => {
             this.$store.commit("map/SET_SERVER_CHANGED");
+            this.$store.commit("map/SET_HEAT_LINE_NODES", res.data);
           });
         }
       }

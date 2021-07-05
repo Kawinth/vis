@@ -8,25 +8,25 @@
     <info v-if="infoVisible" :form="formTemp"></info>
     <!-- Marker编辑dialog -->
     <el-dialog title="新建标志" width="20%" :visible.sync="dialogFormVisible">
-      <el-form :model="edittingMarker">
+      <el-form :model="editingMarker">
         <el-form-item label="名称">
-          <el-input v-model="edittingMarker.name" autocomplete="off"></el-input>
+          <el-input v-model="editingMarker.name" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="经度">
           <el-input
-            v-model="edittingMarker.longitude"
+            v-model="editingMarker.longitude"
             autocomplete="off"
           ></el-input>
         </el-form-item>
         <el-form-item label="纬度">
           <el-input
-            v-model="edittingMarker.latitude"
+            v-model="editingMarker.latitude"
             autocomplete="off"
           ></el-input>
         </el-form-item>
         <el-form-item label="海拔">
           <el-input
-            v-model="edittingMarker.altitude"
+            v-model="editingMarker.altitude"
             autocomplete="off"
           ></el-input>
         </el-form-item>
@@ -48,7 +48,8 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import EditButton from "./components/EditButton.vue";
 import Info from "./components/Info";
 import { mapState } from "vuex";
-import "../Ribbon/coponents/leaflet.hotline"
+import "../Ribbon/coponents/heat-line"
+import * as myBubble from "./components/my"
 
 import {
   getList,
@@ -70,7 +71,7 @@ export default {
       centralPoint: [30.13898, 118.170372], //纬度，经度
       layerGroup: [],
       centerP: { lng: 118.170372, lat: 30.13898 },
-      edittingMarker: {},
+      editingMarker: {},
       markers: [],
       dialogFormVisible: false,
       pipes: [],
@@ -84,6 +85,7 @@ export default {
       //pipeList: (state) => state.map.pipeList,
       infoVisible: (state) => state.map.infoVisible,
       serverChanged: (state) => state.map.serverChanged,
+      heatLineNodes: (state) => state.map.focusHeatLineNodes
     }),
   },
   watch: {
@@ -101,6 +103,8 @@ export default {
         "color: white; background: green;",
         " 服务端状态改变了"
       );
+      console.log(this.heatLineNodes)
+      this.drawHeatLine()
       this.flushData();
       //TODO 是否清空
     },
@@ -156,19 +160,47 @@ export default {
         });
       }
     },
+    drawHeatLine() {
+      let heatLineLayer = L.heatLine(this.heatLineNodes.node, {
+        min: 150,
+        max: 350,
+        palette: {
+          0.0: "#008800",
+          0.5: "#ffff00",
+          1.0: "#ff0000",
+        },
+        weight: 5,
+        outlineColor: "#000000",
+        outlineWidth: 1,
+        extraValue: this.heatLineNodes.weight
+      });
+
+      let bounds = heatLineLayer.getBounds();
+      this.map.fitBounds(bounds);
+      //myBubble.default.drawCoodinateAxis();
+      myBubble.default.drawBubble();
+      console.log(this.map.getPixelBounds().getSize());
+      L.svgOverlay(myBubble.default.svgElement, this.map.getBounds()).addTo(this.map);
+      heatLineLayer
+          .bindPopup((e) => {
+            console.log(e);
+            return "HHHHHHH"
+          })
+          .addTo(this.map);
+    },
     cancelCreateMarker() {
       this.dialogFormVisible = false;
       this.flushData();
     },
     confirmMarker() {
-      if (this.edittingMarker.name === "") {
+      if (this.editingMarker.name === "") {
         this.$message({
           message: "请填写管线名",
           type: "warning",
         });
       } else {
         this.dialogFormVisible = false;
-        let newMarker = this.edittingMarker;
+        let newMarker = this.editingMarker;
         newMarker.altitude = new Number(newMarker.altitude);
         newMarker.longitude = new Number(newMarker.longitude);
         newMarker.latitude  = new Number(newMarker.latitude);
@@ -248,7 +280,7 @@ export default {
     onLayerCreated() {
       return (e) => {
         if (e.shape === "Marker") {
-          this.edittingMarker = {
+          this.editingMarker = {
             id: null,
             name: "",
             latitude: e.marker._latlng.lat,
@@ -436,6 +468,7 @@ export default {
         .addTo(map); //添加featureGroup统一管理交互
       this.layerGroup.on("mouseover", this.mouseoverLine);
       this.layerGroup.on("mouseout", this.mouseoutLine);
+      map.on("click",(e)=>{console.log(e)});
       return map;
     },
     mouseoverLine: function (e) {
@@ -462,6 +495,7 @@ export default {
       if (e.propagatedFrom.isPipe === true) {
         this.$store.commit("map/SET_INFO_VISIBLE", false);
         let layer = e.layer;
+        console.log(layer);
         layer.setStyle({
           weight: 5,
           dashArray: "",
@@ -472,7 +506,7 @@ export default {
 
         this.$store.commit("map/SET_INFO_VISIBLE", true);
       } else {
-        this.edittingMarker = this.findMarker(e.layer.id);
+        this.editingMarker = this.findMarker(e.layer.id);
         this.dialogFormVisible = true;
       }
     },
