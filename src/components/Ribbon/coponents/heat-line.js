@@ -120,8 +120,6 @@
         _drawHeatLine: function(ctx) {
             var i, j, dataLength, path, pathLength, pointStart, pointEnd, gradient, gradientStartRGB, gradientEndRGB;
             ctx.lineWidth = this._weight;
-            console.log(this._data);
-            console.log(this._extraValue);
             for (i = 0, dataLength = this._data.length; i < dataLength; i++) {
                 path = this._data[i];
                 for (j = 1, pathLength = path.length; j < pathLength; j++) {

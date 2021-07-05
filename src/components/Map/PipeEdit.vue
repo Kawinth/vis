@@ -49,7 +49,7 @@ import EditButton from "./components/EditButton.vue";
 import Info from "./components/Info";
 import { mapState } from "vuex";
 import "../Ribbon/coponents/heat-line"
-import * as myBubble from "./components/my"
+import {MyBubble} from "./components/my"
 
 import {
   getList,
@@ -178,8 +178,10 @@ export default {
       let bounds = heatLineLayer.getBounds();
       this.map.fitBounds(bounds);
       //myBubble.default.drawCoodinateAxis();
+      
+      let mapSize = this.map.getPixelBounds().getSize();
+      let myBubble = new MyBubble(mapSize.x, mapSize.y);
       myBubble.default.drawBubble();
-      console.log(this.map.getPixelBounds().getSize());
       L.svgOverlay(myBubble.default.svgElement, this.map.getBounds()).addTo(this.map);
       heatLineLayer
           .bindPopup((e) => {

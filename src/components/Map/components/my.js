@@ -5,10 +5,9 @@ import {
     BSplineShapeGenerator,
 } from "./bubblesets.js";
 import * as d3 from 'd3';
-import { schemeGnBu } from "d3";
 
 class MyBubble {
-    constructor() {
+    constructor(width,height) {
         this.i = 0;
         this.colors = ["black", "yellow", "green", "red"];
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -16,7 +15,7 @@ class MyBubble {
         svg.setAttribute('xmlns', "http://www.w3.org/2000/svg");
         svg.setAttribute('width', "1920")
         svg.setAttribute('height', "872");
-        //svg.setAttribute('viewBox', "0 0 50 50");
+        svg.setAttribute('viewBox', "0 0 1920 872");
         svg.setAttribute('style',"background:rgba(135,206,235,0.3);");
         this.svgElement = svg;
         this.bubbles = new BubbleSet();
@@ -183,4 +182,4 @@ class MyBubble {
     }
 }
 
-export default new MyBubble();
+export {MyBubble};
