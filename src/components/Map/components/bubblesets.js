@@ -737,7 +737,6 @@ function BubbleSet() {
     //   console.log(tempList[i]);
     //   fhull.add(new Point(tempList[i][0], tempList[i][1]));
     // }
-    console.log(surface.list())
     for(var i = 0, j = 0;j < size;j += 1,i += thisSkip) {
       fhull.add(new Point(surface.get(i).x() + xcorner, surface.get(i).y() + ycorner));
     }

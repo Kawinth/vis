@@ -48,8 +48,8 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import EditButton from "./components/EditButton.vue";
 import Info from "./components/Info";
 import { mapState } from "vuex";
-import "../Ribbon/coponents/heat-line"
-import {MyBubble} from "./components/my"
+import "./coponents/heat-line";
+import { MyBubble } from "./components/river-contour";
 
 import {
   getList,
@@ -85,7 +85,7 @@ export default {
       //pipeList: (state) => state.map.pipeList,
       infoVisible: (state) => state.map.infoVisible,
       serverChanged: (state) => state.map.serverChanged,
-      heatLineNodes: (state) => state.map.focusHeatLineNodes
+      heatLineNodes: (state) => state.map.focusHeatLineNodes,
     }),
   },
   watch: {
@@ -103,8 +103,7 @@ export default {
         "color: white; background: green;",
         " 服务端状态改变了"
       );
-      console.log(this.heatLineNodes)
-      this.drawHeatLine()
+      this.drawHeatLine();
       this.flushData();
       //TODO 是否清空
     },
@@ -172,23 +171,76 @@ export default {
         weight: 5,
         outlineColor: "#000000",
         outlineWidth: 1,
-        extraValue: this.heatLineNodes.weight
+        extraValue: this.heatLineNodes.weight,
       });
-
       let bounds = heatLineLayer.getBounds();
-      this.map.fitBounds(bounds);
+      //自动缩放到最佳比例
+      //this.map.fitBounds(bounds);
       //myBubble.default.drawCoodinateAxis();
-      
+      heatLineLayer
+        .bindPopup((e) => {
+          console.log(e);
+          return "HHHHHHH";
+        })
+        .addTo(this.map);
+      this.drawContour();
+    },
+    drawContour() {
+      let anchors = this.heatLineNodes.anchor;
+      console.log(this.heatLineNodes);
+      //let zoomIndex = this.map._zoom;
       let mapSize = this.map.getPixelBounds().getSize();
       let myBubble = new MyBubble(mapSize.x, mapSize.y);
-      myBubble.default.drawBubble();
-      L.svgOverlay(myBubble.default.svgElement, this.map.getBounds()).addTo(this.map);
-      heatLineLayer
-          .bindPopup((e) => {
-            console.log(e);
-            return "HHHHHHH"
-          })
-          .addTo(this.map);
+      //let crs = this.map.options.crs;
+      let points = []
+      let nodes = []
+      let l = []
+      let l2 = []
+      for(let node of this.heatLineNodes.node){
+        let nodeTemp = L.latLng(node);
+        let point = this.map.latLngToLayerPoint(nodeTemp);
+        nodes.push(point)
+        //l.push(nodeTemp)
+      }
+      for (let anchor of anchors) {
+        let latLng = L.latLng(anchor);
+        let point = this.map.latLngToLayerPoint(latLng);
+        l2.push(latLng);
+        //points.push(point)*/
+      
+    
+        //myBubble.drawBubble(point);
+      }
+      console.log(l2[0]);
+      myBubble.drawBubble(nodes[0]);
+      myBubble.drawBubble(nodes[nodes.length-1]);
+      /*for(let latLng of l) {
+        L.circle(latLng, {
+          color: "red",
+          fillColor: "#f03",
+          fillOpacity: 0.5,
+          radius: 10,
+        }).addTo(this.map);
+      }
+      for(let latLng of l2) {
+        L.circle(latLng, {
+          color: "red",
+          fillColor: "#f03",
+          fillOpacity: 0.5,
+          radius: 10,
+        }).addTo(this.map);
+      }*/
+      
+
+      L.svgOverlay(myBubble.svgElement, this.map.getBounds()).addTo(this.map);
+    },
+    latlngToTilePixel(latlng, crs, zoom, tileSize, pixelOrigin) {
+      const layerPoint = crs.latLngToPoint(latlng, zoom).floor();
+      const tile = layerPoint.divideBy(tileSize).floor();
+      const tileCorner = tile.multiplyBy(tileSize).subtract(pixelOrigin);
+      const tilePixel = layerPoint.subtract(pixelOrigin).subtract(tileCorner);
+
+      return [tile, tilePixel];
     },
     cancelCreateMarker() {
       this.dialogFormVisible = false;
@@ -205,11 +257,10 @@ export default {
         let newMarker = this.editingMarker;
         newMarker.altitude = new Number(newMarker.altitude);
         newMarker.longitude = new Number(newMarker.longitude);
-        newMarker.latitude  = new Number(newMarker.latitude);
-        if(newMarker.id === null){
-          addMarker(newMarker)
+        newMarker.latitude = new Number(newMarker.latitude);
+        if (newMarker.id === null) {
+          addMarker(newMarker);
         } else updateMarker(newMarker);
-        
       }
     },
     /**
@@ -334,10 +385,10 @@ export default {
     },
     exitDrawMode() {
       return (e) => {
-        if(e.enabled === false && e.shape === "Marker"){
+        if (e.enabled === false && e.shape === "Marker") {
           this.flushData();
         }
-      } 
+      };
     },
     /**
      * 注：Geoman插件默认的Marker图标加载不了，需要修改
@@ -391,20 +442,17 @@ export default {
       L.TileLayer.ChinaProvider.providers = {
         TianDiTu: {
           Normal: {
-            Map:
-              "https://t{s}.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
+            Map: "https://t{s}.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
             Annotion:
               "https://t{s}.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
           },
           Satellite: {
-            Map:
-              "https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
+            Map: "https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
             Annotion:
               "https://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
           },
           Terrain: {
-            Map:
-              "https://t{s}.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
+            Map: "https://t{s}.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
             Annotion:
               "https://t{s}.tianditu.gov.cn/cta_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
           },
@@ -424,23 +472,28 @@ export default {
       var normalm = L.tileLayer.chinaProvider("TianDiTu.Normal.Map", {
           maxZoom: 18,
           minZoom: 5,
+          //tileSize: 512,
         }),
         normala = L.tileLayer.chinaProvider("TianDiTu.Normal.Annotion", {
           maxZoom: 18,
           minZoom: 5,
+          //tileSize: 512,
         }),
         imgm = L.tileLayer.chinaProvider("TianDiTu.Satellite.Map", {
           maxZoom: 18,
           minZoom: 5,
+          //tileSize: 512,
         }),
         imga = L.tileLayer.chinaProvider("TianDiTu.Satellite.Annotion", {
           maxZoom: 18,
           minZoom: 5,
+          //tileSize: 512,
         });
       var OpenStreetMap_Mapnik = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
           maxZoom: 19,
+          //tileSize: 512,
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }
@@ -470,7 +523,7 @@ export default {
         .addTo(map); //添加featureGroup统一管理交互
       this.layerGroup.on("mouseover", this.mouseoverLine);
       this.layerGroup.on("mouseout", this.mouseoutLine);
-      map.on("click",(e)=>{console.log(e)});
+      //map.on("click",(e)=>{console.log(e)});
       return map;
     },
     mouseoverLine: function (e) {

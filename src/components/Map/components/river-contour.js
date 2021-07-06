@@ -19,8 +19,12 @@ class MyBubble {
         svg.setAttribute('style',"background:rgba(135,206,235,0.3);");
         this.svgElement = svg;
         this.bubbles = new BubbleSet();
-        
-        
+        this.anchors = [];
+        var mySvg = this.svgElement;
+        this.items = this.appendSVG(mySvg, "g");
+        this.pathA = this.appendSVG(mySvg, "path");
+        this.rectanglesA = [];
+        this.rectanglesB = [];
     }
     drawCoodinateAxis() {
 
@@ -44,15 +48,11 @@ class MyBubble {
         svg.append('g')
             .call(yAxis).attr("transform", "translate(0,0)").selectAll("text");
     }
-    drawBubble(){
-        var mySvg = this.svgElement;
-        this.items = this.appendSVG(mySvg, "g");
-        this.pathA = this.appendSVG(mySvg, "path");
-        this.rectanglesA = [];
-        this.rectanglesB = [];
+    drawBubble(point){
+        
         //this.pathB = this.appendSVG(mySvg, "path");
         d3.selectAll("circle").remove();
-        this.addRect(this.rectanglesA, "cornflowerblue", 1, 1);
+        this.addRect(this.rectanglesA, "cornflowerblue", point.x, point.y);
     }
     attr(elem, attr) {
         // console.log(attr)
@@ -178,8 +178,9 @@ class MyBubble {
             height: height,
             elem: elem,
         });
-       this.update(rectangles,);
+       this.update();
     }
+    addAnchor() {}
 }
 
 export {MyBubble};
