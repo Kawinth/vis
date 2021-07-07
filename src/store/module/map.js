@@ -7,6 +7,7 @@ const state = {
   pipeList: [],
   infoVisible: false,
   focusHeatLineNodes: [],
+  leafletMap: null,
 }
 
 const mutations = {
@@ -25,6 +26,9 @@ const mutations = {
   SET_HEAT_LINE_NODES:(state,nodes) => {
     state.focusHeatLineNodes = nodes;
   },
+  SET_LEAFLET_MAP:(state,map) => {
+    state.leafletMap = map;
+  }
 }
 
 const actions = {

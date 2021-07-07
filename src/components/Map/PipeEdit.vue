@@ -1,9 +1,6 @@
 <template>
   <div>
     <div id="map"></div>
-    <edit-button
-      style="top: calc(85vh); left: calc(85vw); position: fixed; z-index: 9999"
-    ></edit-button>
     <!-- 管网信息编辑组件 -->
     <info v-if="infoVisible" :form="formTemp"></info>
     <!-- Marker编辑dialog -->
@@ -45,7 +42,6 @@ import * as L from "leaflet";
 import "leaflet.chinatmsproviders";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import EditButton from "./components/EditButton.vue";
 import Info from "./components/Info";
 import { mapState } from "vuex";
 import "./components/heat-line.js";
@@ -63,7 +59,7 @@ import {
 
 export default {
   name: "LMap",
-  components: { EditButton, Info },
+  components: { Info },
   data() {
     return {
       map: null,
@@ -173,10 +169,9 @@ export default {
         outlineWidth: 1,
         extraValue: this.heatLineNodes.weight,
       });
-      let bounds = heatLineLayer.getBounds();
+      //let bounds = heatLineLayer.getBounds();
       //自动缩放到最佳比例
       //this.map.fitBounds(bounds);
-      //myBubble.default.drawCoodinateAxis();
       heatLineLayer
         .bindPopup((e) => {
           console.log(e);
@@ -599,6 +594,7 @@ export default {
     this.changeTianDiTuKey();
     this.map = this.loadMap();
     this.flushData();
+    this.$store.commit("map/SET_LEAFLET_MAP",this.map);
   },
 };
 </script>
