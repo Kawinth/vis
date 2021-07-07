@@ -48,8 +48,8 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import EditButton from "./components/EditButton.vue";
 import Info from "./components/Info";
 import { mapState } from "vuex";
-import "./coponents/heat-line";
-import { MyBubble } from "./components/river-contour";
+import "./components/heat-line.js";
+import { RiverContour } from "./components/river-contour";
 
 import {
   getList,
@@ -190,7 +190,7 @@ export default {
       console.log(this.heatLineNodes);
       //let zoomIndex = this.map._zoom;
       let mapSize = this.map.getPixelBounds().getSize();
-      let myBubble = new MyBubble(mapSize.x, mapSize.y);
+      let myBubble = new RiverContour(mapSize.x.toString(), mapSize.y.toString());
       //let crs = this.map.options.crs;
       let points = []
       let nodes = []
@@ -514,6 +514,7 @@ export default {
         .zoom({
           zoomInTitle: "放大",
           zoomOutTitle: "缩小",
+          position: "topright",
         })
         .addTo(map);
 
@@ -604,12 +605,11 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-#map {
-  width: 100%;
-  height: calc(90vh);
-  z-index: 1;
-}
 .cd-span {
   color: seagreen;
+}
+#map {
+  width: 100%;
+  height: 100%;
 }
 </style>

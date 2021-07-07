@@ -6,16 +6,16 @@ import {
 } from "./bubblesets.js";
 import * as d3 from 'd3';
 
-class MyBubble {
+class RiverContour {
     constructor(width,height) {
         this.i = 0;
         this.colors = ["black", "yellow", "green", "red"];
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute('id',"haha");
+        svg.setAttribute('id',"river-contour");
         svg.setAttribute('xmlns', "http://www.w3.org/2000/svg");
-        svg.setAttribute('width', "1920")
-        svg.setAttribute('height', "872");
-        svg.setAttribute('viewBox', "0 0 1920 872");
+        svg.setAttribute('width', width);
+        svg.setAttribute('height', height);
+        svg.setAttribute('viewBox', "0 0 "+width+" "+height);
         svg.setAttribute('style',"background:rgba(135,206,235,0.3);");
         this.svgElement = svg;
         this.bubbles = new BubbleSet();
@@ -104,11 +104,11 @@ class MyBubble {
 
 
         //console.log(list.toString())
-        let svg = d3.select("#svg");
-        for (var i in list) {
-            svg.append("circle").attr("cx", list[i][0]).attr("cy", list[i][1]).attr("r", 2).attr("fill", this.colors[this.i])
-        }
-        this.i++;
+        // let svg = d3.select("#svg");
+        // for (var i in list) {
+        //     svg.append("circle").attr("cx", list[i][0]).attr("cy", list[i][1]).attr("r", 2).attr("fill", this.colors[this.i])
+        // }
+        // this.i++;
 
         //console.log(list)
         // rectangles need to have the form { x: 0, y: 0, width: 0, height: 0 }
@@ -183,4 +183,4 @@ class MyBubble {
     addAnchor() {}
 }
 
-export {MyBubble};
+export {RiverContour};

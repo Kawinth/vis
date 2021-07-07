@@ -1,42 +1,43 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Gis管网管理</router-link> |
-      <router-link to="/about">BubbleSets</router-link> |
-      <router-link to="/pipe">管网仿真计算</router-link> |
-      <router-link to="/demo">D3学习Demo</router-link> |
-      <router-link to="/mp">demo</router-link>
-    </div>
-    <router-view/>
+    <nav-bar></nav-bar>
+    <l-map id="l-map" ></l-map>
+    <sketch-mask></sketch-mask>
   </div>
 </template>
 
 <style>
 
 * {
-	margin:0px;
-	padding: 0px;
+	margin:0;
+	padding: 0;
 }
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Times New Roman", Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
 }
 
-#nav {
-  padding: 30px;
+#l-map {
+  width: 100%;
+  position: absolute;
+  top: 80px;
+  bottom: 0;
+  left: 0;
 }
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
+.mx-datepicker-popup {
+  /*大于el-drawer的2000，但小于最大值9999*/
+  z-index: 2999 !important;
 }
-
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-
 
 </style>
+<script>
+import LMap from "@/components/Map/PipeEdit";
+import NavBar from "@/components/NavBar";
+import SketchMask from "@/views/SketchMask";
+export default {
+  components: {SketchMask, NavBar, LMap}
+}
+</script>
