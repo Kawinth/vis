@@ -68,5 +68,19 @@ export default {
 </script>
 
 <style scoped>
-
+section {
+  max-width: 600px;
+  /* margin: 1.5em auto; */
+  text-align: center;
+}
+aside {
+  margin: 1.5em 0;
+}
+label {
+  display: inline-block;
+  padding: 0.5em;
+}
+input {
+  vertical-align: text-bottom;
+}
 </style>

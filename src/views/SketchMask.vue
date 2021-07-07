@@ -6,7 +6,9 @@
           <i v-show="!drawerVisible" class="el-icon-caret-left"></i>
           <i v-show="drawerVisible" class="el-icon-caret-right"></i>
         </div>
-        <div class="right-drawer"></div>
+        <div class="right-drawer">
+          <operation-panel></operation-panel>
+        </div>
       </div>
     </div>
 
@@ -15,10 +17,11 @@
 
 <script>
 // @ is an alias to /src
-import LMap from '@/components/Map/PipeEdit.vue'
+import OperationPanel from '@/components/OperationPanel/index.vue'
 
 export default {
   name: 'SketchMask',
+  components: {OperationPanel},
   data() {
     return {
       drawerVisible: false,
@@ -32,7 +35,8 @@ export default {
   top: 80px;
   width: 600px;
   height: 857px;
-  background: #b942b3;
+  background: rgb(248, 247, 250);
+  border: 2px solid #d4d1d1;
 }
 
 .sideBar {
@@ -58,7 +62,7 @@ export default {
   position: absolute;
   height: 40px;
   line-height: 25px;
-  background-color: #eea236;
+  background-color: #006699;
   width: 40px;
   left: -40px;
   top: 435px;
