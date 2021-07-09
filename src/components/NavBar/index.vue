@@ -69,7 +69,8 @@ export default {
        this.$store.commit("map/SET_MODE", "normal");
      },
      intoEditing() {
-       this.$store.dispatch('map/changeMode', "modification");
+       this.$store.commit("map/SET_MODE", "modification");
+       console.log(this.map)
      },
      async searchLocation(queryString, cb){
        const results =  await this.provider.search({ query: this.condition.site });

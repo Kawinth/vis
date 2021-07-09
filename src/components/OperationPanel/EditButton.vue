@@ -16,10 +16,10 @@ export default {
   },
   methods: {
     start() {
-      this.$store.dispatch('map/changeMode', "modification")
+
     },
     end() {
-      this.$store.commit("map/SET_MODE", "normal");
+
     }
   },
 };

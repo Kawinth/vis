@@ -2,9 +2,12 @@ import {getList} from '@/api/pipe-network'
 
 
 const state = {
+  //系统当前模式,normal正常模式，modification为编辑模式
   mode: 'normal',
+  //后台数据是否修改
   serverChanged: false,
-  pipeList: [],
+  //用于保存后台管线信息列表
+  pipeLineList: [],
   infoVisible: false,
   focusHeatLineNodes: [],
   leafletMap: null,
@@ -18,7 +21,7 @@ const mutations = {
     state.serverChanged = !state.serverChanged;
   },
   SET_PIPE_LIST: (state,list) => {
-    state.pipeList = list;
+    state.pipeLineList = list;
   },
   SET_INFO_VISIBLE:(state,visible) => {
     state.infoVisible = visible;

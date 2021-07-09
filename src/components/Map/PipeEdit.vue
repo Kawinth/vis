@@ -42,7 +42,7 @@ import * as L from "leaflet";
 import "leaflet.chinatmsproviders";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import Info from "./components/Info";
+import Info from "../OperationPanel/Info";
 import { mapState } from "vuex";
 import "./components/heat-line.js";
 import { RiverContour } from "./components/river-contour";
@@ -72,6 +72,7 @@ export default {
       dialogFormVisible: false,
       pipes: [],
       updatedLayers: new Set(),
+      geomanTempGroup: L.featureGroup(),
     };
   },
 
@@ -147,6 +148,7 @@ export default {
             { className: "mypopup" }
           );
         marker.id = this.markers[i].id;
+        marker.isPipe = false;
       }
 
       for (let key in this.layerGroup._layers) {
@@ -229,14 +231,6 @@ export default {
 
       L.svgOverlay(myBubble.svgElement, this.map.getBounds()).addTo(this.map);
     },
-    latlngToTilePixel(latlng, crs, zoom, tileSize, pixelOrigin) {
-      const layerPoint = crs.latLngToPoint(latlng, zoom).floor();
-      const tile = layerPoint.divideBy(tileSize).floor();
-      const tileCorner = tile.multiplyBy(tileSize).subtract(pixelOrigin);
-      const tilePixel = layerPoint.subtract(pixelOrigin).subtract(tileCorner);
-
-      return [tile, tilePixel];
-    },
     cancelCreateMarker() {
       this.dialogFormVisible = false;
       this.flushData();
@@ -250,9 +244,9 @@ export default {
       } else {
         this.dialogFormVisible = false;
         let newMarker = this.editingMarker;
-        newMarker.altitude = new Number(newMarker.altitude);
-        newMarker.longitude = new Number(newMarker.longitude);
-        newMarker.latitude = new Number(newMarker.latitude);
+        newMarker.altitude = Number(newMarker.altitude);
+        newMarker.longitude = Number(newMarker.longitude);
+        newMarker.latitude = Number(newMarker.latitude);
         if (newMarker.id === null) {
           addMarker(newMarker);
         } else updateMarker(newMarker);
@@ -272,7 +266,7 @@ export default {
             let updated = this.layerGroup._layers[key];
             if (updated.isPipe === true) {
               let pipe = this.findPipe(updated.id);
-              pipe.nodes = new Array();
+              pipe.nodes = [];
 
               for (let i in updated._latlngs) {
                 //转换为后台所需格式
@@ -326,7 +320,10 @@ export default {
       };
     },
     onLayerCreated() {
+      console.log(this.layerGroup)
+
       return (e) => {
+        console.log(this.geomanTempGroup)
         if (e.shape === "Marker") {
           this.editingMarker = {
             id: null,
@@ -354,7 +351,7 @@ export default {
             texture: "",
           };
           //将捕捉到的layer里的经纬度数组转换为对应格式
-          let arr = new Array();
+          let arr = [];
           for (let i = 0; i < e.layer._latlngs.length; i++) {
             arr.push([e.layer._latlngs[i].lat, e.layer._latlngs[i].lng]);
           }
@@ -364,6 +361,7 @@ export default {
         }
       };
     },
+
     findPipe(id) {
       for (let i in this.pipes) {
         if (this.pipes[i].id == id) {
@@ -456,7 +454,7 @@ export default {
       };
     },
     loadMap() {
-      var map = L.map("map", {
+      let map = L.map("map", {
         center: this.centerP, // 地图中心
         zoom: 13, //缩放比列
         zoomControl: false, //禁用 + - 按钮
@@ -464,7 +462,7 @@ export default {
         attributionControl: false, // 移除右下角leaflet标识
       });
 
-      var normalm = L.tileLayer.chinaProvider("TianDiTu.Normal.Map", {
+      let normalm = L.tileLayer.chinaProvider("TianDiTu.Normal.Map", {
           maxZoom: 18,
           minZoom: 5,
           //tileSize: 512,
@@ -484,7 +482,7 @@ export default {
           minZoom: 5,
           //tileSize: 512,
         });
-      var OpenStreetMap_Mapnik = L.tileLayer(
+      let OpenStreetMap_Mapnik = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
           maxZoom: 19,
@@ -493,16 +491,16 @@ export default {
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }
       );
-      var normal = L.layerGroup([normalm, normala]),
+      let normal = L.layerGroup([normalm, normala]),
         image = L.layerGroup([imgm, imga]);
       normal.addTo(map);
-      var baseLayers = {
+      let baseLayers = {
         地图: normal,
         OSM: OpenStreetMap_Mapnik,
         影像: image,
       };
 
-      var overlayLayers = {};
+      let overlayLayers = {};
 
       L.control.layers(baseLayers, overlayLayers).addTo(map);
       L.control
@@ -544,6 +542,7 @@ export default {
         return;
       }
       if (e.propagatedFrom.isPipe === true) {
+        console.log(e)
         this.$store.commit("map/SET_INFO_VISIBLE", false);
         let layer = e.layer;
         console.log(layer);
@@ -565,7 +564,7 @@ export default {
       //L.PM.setOptIn(true);
       this.changeGeomanDefaultIcon(map);
       map.pm.setLang("zh");
-      map.pm.setGlobalOptions({ layerGroup: this.layerGroup });
+      map.pm.setGlobalOptions({ layerGroup: this.geomanTempGroup });
       // add leaflet-geoman controls with some options to the map
       map.pm.setPathOptions({
         //组件绘制的颜色
@@ -584,6 +583,7 @@ export default {
       });
 
       map.on("pm:create", this.onLayerCreated());
+      //map.on("pm:drawend", this.onLayerCreated2());
       map.on("pm:globaldrawmodetoggled", this.exitDrawMode());
       map.on("pm:globaleditmodetoggled", this.batchUpdate());
       map.on("pm:globaldragmodetoggled", this.batchUpdate());

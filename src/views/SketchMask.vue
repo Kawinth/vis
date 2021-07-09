@@ -1,5 +1,7 @@
 <template>
   <div class="home">
+    <!-- 管网信息编辑组件 -->
+    <info v-if="infoVisible" :form="formTemp"></info>
     <div :class="{trans1:drawerVisible,trans2:!drawerVisible,sideBar:true}">
       <div>
         <div class="tips" @click="drawerVisible = !drawerVisible">
@@ -18,10 +20,19 @@
 <script>
 // @ is an alias to /src
 import OperationPanel from '@/components/OperationPanel/index.vue'
+import Info from "@/components/OperationPanel/Info";
+import {mapState} from "vuex";
 
 export default {
   name: 'SketchMask',
-  components: {OperationPanel},
+  components: {Info, OperationPanel},
+  ...mapState({
+    mode: (state) => state.map.mode,
+    //pipeList: (state) => state.map.pipeList,
+    infoVisible: (state) => state.map.infoVisible,
+    serverChanged: (state) => state.map.serverChanged,
+    heatLineNodes: (state) => state.map.focusHeatLineNodes,
+  }),
   data() {
     return {
       drawerVisible: false,
