@@ -1,7 +1,8 @@
 <template>
   <div class="home">
     <!-- 管网信息编辑组件 -->
-    <info v-if="infoVisible" :form="formTemp"></info>
+    <pipeline-info-window v-if="pipeLineInfoEditVisible"></pipeline-info-window>
+    <marker-info-edit-window v-if="markerInfoEditVisible"></marker-info-edit-window>
     <div :class="{trans1:drawerVisible,trans2:!drawerVisible,sideBar:true}">
       <div>
         <div class="tips" @click="drawerVisible = !drawerVisible">
@@ -20,19 +21,22 @@
 <script>
 // @ is an alias to /src
 import OperationPanel from '@/components/OperationPanel/index.vue'
-import Info from "@/components/OperationPanel/Info";
+import PipelineInfoWindow from "@/components/OperationPanel/PipelineInfoEditWindow";
 import {mapState} from "vuex";
+import MarkerInfoEditWindow from "@/components/OperationPanel/MarkerInfoEditWindow";
 
 export default {
   name: 'SketchMask',
-  components: {Info, OperationPanel},
-  ...mapState({
-    mode: (state) => state.map.mode,
-    //pipeList: (state) => state.map.pipeList,
-    infoVisible: (state) => state.map.infoVisible,
-    serverChanged: (state) => state.map.serverChanged,
-    heatLineNodes: (state) => state.map.focusHeatLineNodes,
-  }),
+  components: {MarkerInfoEditWindow, PipelineInfoWindow, OperationPanel},
+  computed: {
+    ...mapState({
+      pipeLineInfoEditVisible: (state) => state.view.pipeLineInfoEditVisible,
+      markerInfoEditVisible: (state) => state.view.markerInfoEditVisible,
+      lineVisible: (state) => state.view.lineVisible,
+      ribbonVisible: (state) => state.view.ribbonVisible,
+      heatLineVisible: (state) => state.view.heatLineVisible,
+    }),
+  },
   data() {
     return {
       drawerVisible: false,

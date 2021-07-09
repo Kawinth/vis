@@ -1,38 +1,6 @@
 <template>
   <div>
     <div id="map"></div>
-    <!-- 管网信息编辑组件 -->
-    <info v-if="infoVisible" :form="formTemp"></info>
-    <!-- Marker编辑dialog -->
-    <el-dialog title="新建标志" width="20%" :visible.sync="dialogFormVisible">
-      <el-form :model="editingMarker">
-        <el-form-item label="名称">
-          <el-input v-model="editingMarker.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="经度">
-          <el-input
-            v-model="editingMarker.longitude"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="纬度">
-          <el-input
-            v-model="editingMarker.latitude"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="海拔">
-          <el-input
-            v-model="editingMarker.altitude"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="cancelCreateMarker">取 消</el-button>
-        <el-button type="primary" @click="confirmMarker">确 定</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -42,8 +10,8 @@ import * as L from "leaflet";
 import "leaflet.chinatmsproviders";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import Info from "../OperationPanel/Info";
-import { mapState } from "vuex";
+import Info from "../OperationPanel/PipelineInfoEditWindow";
+import {mapMutations, mapState} from "vuex";
 import "./components/heat-line.js";
 import { RiverContour } from "./components/river-contour";
 
@@ -51,7 +19,6 @@ import {
   getList,
   getMarkerList,
   deleteMarker,
-  addMarker,
   updateMarker,
   deletePipe,
   updatePipe,
@@ -69,7 +36,6 @@ export default {
       centerP: { lng: 118.170372, lat: 30.13898 },
       editingMarker: {},
       markers: [],
-      dialogFormVisible: false,
       pipes: [],
       updatedLayers: new Set(),
       geomanTempGroup: L.featureGroup(),
@@ -106,6 +72,14 @@ export default {
     },
   },
   methods: {
+    ...mapMutations({
+      // 将 `this.setPipelineInfoVisible()` 映射为 `this.$store.commit('view/commitPipeLineInfoEditVisible')`
+      setPipelineInfoVisible: 'view/commitPipeLineInfoEditVisible',
+      setEditingPipeline: 'view/commitPipeLineInfo',
+      setMarkerInfoVisible: 'view/commitMarkerInfoEditVisible',
+      setEditingMarker: 'view/commitMarkerInfo',
+      changeServerStatus: 'map/SET_SERVER_CHANGED',
+    }),
     async flushData() {
       this.layerGroup.clearLayers();
       await getMarkerList(null).then((res) => (this.markers = res.data));
@@ -231,27 +205,7 @@ export default {
 
       L.svgOverlay(myBubble.svgElement, this.map.getBounds()).addTo(this.map);
     },
-    cancelCreateMarker() {
-      this.dialogFormVisible = false;
-      this.flushData();
-    },
-    confirmMarker() {
-      if (this.editingMarker.name === "") {
-        this.$message({
-          message: "请填写管线名",
-          type: "warning",
-        });
-      } else {
-        this.dialogFormVisible = false;
-        let newMarker = this.editingMarker;
-        newMarker.altitude = Number(newMarker.altitude);
-        newMarker.longitude = Number(newMarker.longitude);
-        newMarker.latitude = Number(newMarker.latitude);
-        if (newMarker.id === null) {
-          addMarker(newMarker);
-        } else updateMarker(newMarker);
-      }
-    },
+    
     /**
      * 使用闭包避免获取不到Vue组件的上下文
      */
@@ -276,7 +230,7 @@ export default {
                 ]);
               }
               updatePipe(pipe).then(() => {
-                this.$store.commit("map/SET_SERVER_CHANGED");
+                this.changeServerStatus();
               });
             } else {
               let marker = this.findMarker(updated.id);
@@ -284,7 +238,7 @@ export default {
               marker.longitude = updated._latlng.lng;
               marker.latitude = updated._latlng.lat;
               updateMarker(marker).then(() => {
-                this.$store.commit("map/SET_SERVER_CHANGED");
+                this.changeServerStatus();
               });
             }
           }
@@ -333,16 +287,21 @@ export default {
             altitude: null,
             equipmentId: null,
           };
-          this.dialogFormVisible = true;
+          this.setEditingMarker(this.editingMarker);
+          this.setMarkerInfoVisible(true);
         }
 
         if (e.shape === "Line") {
           //添加线后，打开信息编辑窗口，保存入库
           this.formTemp = {
             id: null,
+            flow: 1000.0,
+            frictionCoefficient: 0.1,
+            hydraulicPressure: 0.28,
             lineColor: "#993333",
+            groupNumber: 1,
             lineWeight: 2,
-            diameter: null,
+            diameter: 300,
             direction: 1,
             length: null,
             manufacturer: "",
@@ -350,6 +309,7 @@ export default {
             nodes: null,
             texture: "",
           };
+          this.setEditingPipeline(this.formTemp);
           //将捕捉到的layer里的经纬度数组转换为对应格式
           let arr = [];
           for (let i = 0; i < e.layer._latlngs.length; i++) {
@@ -357,7 +317,7 @@ export default {
           }
           this.formTemp.nodes = arr;
           // console.log(e);
-          this.$store.commit("map/SET_INFO_VISIBLE", true);
+          this.setPipelineInfoVisible(true);
         }
       };
     },
@@ -543,7 +503,8 @@ export default {
       }
       if (e.propagatedFrom.isPipe === true) {
         console.log(e)
-        this.$store.commit("map/SET_INFO_VISIBLE", false);
+        //若已经打开了编辑窗口，先关闭其他的窗口
+        this.setPipelineInfoVisible(false);
         let layer = e.layer;
         console.log(layer);
         layer.setStyle({
@@ -553,18 +514,19 @@ export default {
           fillOpacity: 0.7,
         });
         this.formTemp = this.findPipe(layer.id);
-
-        this.$store.commit("map/SET_INFO_VISIBLE", true);
+        this.setEditingPipeline(this.formTemp);
+        this.setPipelineInfoVisible(true);
       } else {
         this.editingMarker = this.findMarker(e.layer.id);
-        this.dialogFormVisible = true;
+        this.setEditingMarker(this.editingMarker);
+        this.setMarkerInfoVisible(true);
       }
     },
     initGeoman(map) {
       //L.PM.setOptIn(true);
       this.changeGeomanDefaultIcon(map);
       map.pm.setLang("zh");
-      map.pm.setGlobalOptions({ layerGroup: this.geomanTempGroup });
+      map.pm.setGlobalOptions({ layerGroup: this.layerGroup });
       // add leaflet-geoman controls with some options to the map
       map.pm.setPathOptions({
         //组件绘制的颜色

@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getList(page) {
   return request({
-    url: '/api/gis/pipe/list',
+    url: '/api/vis/pipeline/list',
     method: 'get',
     params: {...page}
   })
