@@ -10,26 +10,26 @@ const state = {
 }
 
 const mutations = {
-    commitPipeLineInfoEditVisible: (state,visible) => {
+    commitPipeLineInfoEditVisible: (state, visible) => {
         state.pipeLineInfoEditVisible = visible;
     },
     commitPipeLineInfo: (state, info) => {
         state.pipeLineInfo = info;
     },
-    commitMarkerInfoEditVisible: (state, visible) => {
-        state.markerInfoEditVisible = visible;
+    commitMarkerInfoEditVisible: (state) => {
+        state.markerInfoEditVisible = !state.markerInfoEditVisible;
     },
     commitMarkerInfo: (state, info) => {
         state.markerInfo = info;
     },
-    commitLineVisible: (state, visible) => {
-        state.lineVisible = visible;
+    commitLineVisible: (state) => {
+        state.lineVisible = !state.lineVisible;
     },
-    commitRibbonVisible: (state, visible) => {
-        state.ribbonVisible = visible;
+    commitRibbonVisible: (state) => {
+        state.ribbonVisible = !state.ribbonVisible;
     },
-    commitHeatLineVisible: (state, visible) => {
-        state.ribbonVisible = visible;
+    commitHeatLineVisible: (state) => {
+        state.heatLineVisible = !state.heatLineVisible;
     },
 }
 

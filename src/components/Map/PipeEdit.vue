@@ -30,26 +30,43 @@ export default {
   data() {
     return {
       map: null,
+      //编辑模式下，保存当前选中的管线信息
       formTemp: null,
-      centralPoint: [30.13898, 118.170372], //纬度，经度
-      layerGroup: [],
-      centerP: { lng: 118.170372, lat: 30.13898 },
+      //编辑模式下，保存当前选中的marker信息
       editingMarker: {},
+      //用来判断当前事件是否是点击事件，防止触发点击事件
+      notClickEvent: false,
+      centerP: { lng: 118.3092373345947, lat: 29.708865719744868 },
       markers: [],
-      pipes: [],
+      groupedPipeline: [],
       updatedLayers: new Set(),
       geomanTempGroup: L.featureGroup(),
+      lineGroup: L.featureGroup(),
+      markerGroup: L.featureGroup(),
+      heatLineGroup: L.featureGroup(),
+      ribbonGroup: L.featureGroup(),
     };
   },
 
   computed: {
     ...mapState({
       mode: (state) => state.map.mode,
-      //pipeList: (state) => state.map.pipeList,
       infoVisible: (state) => state.map.infoVisible,
       serverChanged: (state) => state.map.serverChanged,
       heatLineNodes: (state) => state.map.focusHeatLineNodes,
+      lineVisible: (state) => state.view.lineVisible,
+      ribbonVisible: (state) => state.view.ribbonVisible,
+      heatLineVisible: (state) => state.view.heatLineVisible,
     }),
+    pipes: function () {
+      return this.groupedPipeline.pipelines;
+    },
+    heatLines: function (){
+      return this.groupedPipeline.heatLines;
+    },
+    ribbons: function () {
+      return this.groupedPipeline.ribbons;
+    }
   },
   watch: {
     //watch里不能使用箭头函数
@@ -60,13 +77,34 @@ export default {
         this.map.pm.removeControls();
       }
     },
+    lineVisible: function (newV, oldV) {
+      if (newV) {
+        this.drawLine();
+      } else {
+        this.lineGroup.clearLayers();
+      }
+    },
+    heatLineVisible: function (newV, oldV) {
+      console.log(this.heatLineVisible)
+      if (newV) {
+        this.drawHeatLine();
+      } else {
+        this.heatLineGroup.clearLayers();
+      }
+    },
+    ribbonVisible: function (newV, oldV) {
+      if (newV) {
+        this.drawRibbon();
+      } else {
+        this.ribbonGroup.clearLayers();
+      }
+    },
     serverChanged: function (newV, oldV) {
       console.log(
         "%c[SUCCESS]",
         "color: white; background: green;",
         " 服务端状态改变了"
       );
-      this.drawHeatLine();
       this.flushData();
       //TODO 是否清空
     },
@@ -81,10 +119,27 @@ export default {
       changeServerStatus: 'map/SET_SERVER_CHANGED',
     }),
     async flushData() {
-      this.layerGroup.clearLayers();
+      this.lineGroup.clearLayers();
+      this.heatLineGroup.clearLayers();
+      this.ribbonGroup.clearLayers();
+      this.markerGroup.clearLayers();
+
       await getMarkerList(null).then((res) => (this.markers = res.data));
-      await getList(null).then((res) => (this.pipes = res.data));
-      let myIcon = this.changeGeomanDefaultIcon(this.map);
+      await getList(null).then((res) => (this.groupedPipeline = res.data));
+
+      if (this.lineVisible){
+        this.drawLine();
+      }
+      if (this.heatLineVisible) {
+        this.drawHeatLine();
+      }
+      if (this.ribbonVisible) {
+        this.drawRibbon();
+      }
+      this.drawMarker();
+
+    },
+    drawLine() {
       //绘制管线
       for (let i in this.pipes) {
         let line;
@@ -92,13 +147,13 @@ export default {
           line = L.polyline(this.pipes[i].nodes, {
             color: this.pipes[i].lineColor,
             weight: this.pipes[i].lineWeight,
-          }).addTo(this.layerGroup);
+          }).addTo(this.lineGroup);
         } catch (e) {
           console.log(e);
           console.log(
-            "%c[Failed]",
-            "color: white; background: red;",
-            this.pipes[i].name + "管线数据有误"
+              "%c[Failed]",
+              "color: white; background: red;",
+              this.pipes[i].name + "管线数据有误"
           );
           continue;
         }
@@ -110,81 +165,81 @@ export default {
         line.id = this.pipes[i].id;
         line.isPipe = true;
       }
+    },
+    drawMarker () {
+      let myIcon = this.changeGeomanDefaultIcon(this.map);
       //绘制marker
       for (let i in this.markers) {
         let marker = L.marker(
-          [this.markers[i].latitude, this.markers[i].longitude],
-          { icon: myIcon }
+            [this.markers[i].latitude, this.markers[i].longitude],
+            { icon: myIcon }
         )
-          .addTo(this.layerGroup)
-          .bindPopup(
-            '<span style="color:blue; ">' + this.markers[i].name + "</span>",
-            { className: "mypopup" }
-          );
+            .addTo(this.lineGroup)
+            .bindPopup(
+                '<span style="color:blue; ">' + this.markers[i].name + "</span>",
+                { className: "mypopup" }
+            );
         marker.id = this.markers[i].id;
         marker.isPipe = false;
       }
-
-      for (let key in this.layerGroup._layers) {
-        this.layerGroup._layers[key].on("pm:edit", (e) => {
-          this.updatedLayers.add(key);
-        });
-      }
     },
     drawHeatLine() {
-      let heatLineLayer = L.heatLine(this.heatLineNodes.node, {
-        min: 150,
-        max: 350,
-        palette: {
-          0.0: "#008800",
-          0.5: "#ffff00",
-          1.0: "#ff0000",
-        },
-        weight: 5,
-        outlineColor: "#000000",
-        outlineWidth: 1,
-        extraValue: this.heatLineNodes.weight,
-      });
-      //let bounds = heatLineLayer.getBounds();
+      for (let heatLine of this.heatLines) {
+        let heatLineLayer = L.heatLine(heatLine.node, {
+          min: 150,
+          max: 350,
+          palette: {
+            0.0: "#008800",
+            0.5: "#ffff00",
+            1.0: "#ff0000",
+          },
+          weight: 5,
+          outlineColor: "#000000",
+          outlineWidth: 1,
+          extraValue: heatLine.weight,
+        });
+
+        heatLineLayer
+            .bindPopup((e) => {
+              return "HHHHHHH";
+            })
+            .addTo(this.heatLineGroup);
+      }
       //自动缩放到最佳比例
+      //let bounds = heatLineLayer.getBounds();
       //this.map.fitBounds(bounds);
-      heatLineLayer
-        .bindPopup((e) => {
-          console.log(e);
-          return "HHHHHHH";
-        })
-        .addTo(this.map);
-      this.drawContour();
+
     },
-    drawContour() {
-      let anchors = this.heatLineNodes.anchor;
-      console.log(this.heatLineNodes);
-      //let zoomIndex = this.map._zoom;
-      let mapSize = this.map.getPixelBounds().getSize();
-      let myBubble = new RiverContour(mapSize.x.toString(), mapSize.y.toString());
-      //let crs = this.map.options.crs;
-      let points = []
-      let nodes = []
-      let l = []
-      let l2 = []
-      for(let node of this.heatLineNodes.node){
-        let nodeTemp = L.latLng(node);
-        let point = this.map.latLngToLayerPoint(nodeTemp);
-        nodes.push(point)
-        //l.push(nodeTemp)
+    drawRibbon() {
+      for (let ribbon of this.ribbons){
+        let anchors = ribbon;
+        console.log(this.heatLineNodes);
+        //let zoomIndex = this.map._zoom;
+        let mapSize = this.map.getPixelBounds().getSize();
+        let myBubble = new RiverContour(mapSize.x.toString(), mapSize.y.toString());
+        //let crs = this.map.options.crs;
+        let points = []
+        let nodes = []
+        let l = []
+        let l2 = []
+        for(let node of ribbon){
+          let nodeTemp = L.latLng(node);
+          let point = this.map.latLngToLayerPoint(nodeTemp);
+          nodes.push(point)
+          //l.push(nodeTemp)
+        }
+        for (let anchor of anchors) {
+          let latLng = L.latLng(anchor);
+          let point = this.map.latLngToLayerPoint(latLng);
+          l2.push(latLng);
+          //points.push(point)*/
+
+
+          myBubble.drawBubble(point);
+        }
+        L.svgOverlay(myBubble.svgElement, this.map.getBounds()).addTo(this.ribbonGroup);
       }
-      for (let anchor of anchors) {
-        let latLng = L.latLng(anchor);
-        let point = this.map.latLngToLayerPoint(latLng);
-        l2.push(latLng);
-        //points.push(point)*/
-      
-    
-        //myBubble.drawBubble(point);
-      }
-      console.log(l2[0]);
-      myBubble.drawBubble(nodes[0]);
-      myBubble.drawBubble(nodes[nodes.length-1]);
+
       /*for(let latLng of l) {
         L.circle(latLng, {
           color: "red",
@@ -201,23 +256,25 @@ export default {
           radius: 10,
         }).addTo(this.map);
       }*/
-      
 
-      L.svgOverlay(myBubble.svgElement, this.map.getBounds()).addTo(this.map);
+
+
     },
-    
     /**
      * 使用闭包避免获取不到Vue组件的上下文
      */
     batchUpdate() {
       return (e) => {
+        console.log("触发了更新")
+        //geoman进入edit模式后
         if (e.enabled === true) {
-          //geoman进入edit模式后
+          this.notClickEvent = true;
           this.updatedLayers = new Set();
         } else {
           //退出edit模式或进入其他模式
+          this.notClickEvent = false;
           for (let key of this.updatedLayers.keys()) {
-            let updated = this.layerGroup._layers[key];
+            let updated = this.lineGroup._layers[key];
             if (updated.isPipe === true) {
               let pipe = this.findPipe(updated.id);
               pipe.nodes = [];
@@ -247,6 +304,7 @@ export default {
     },
     onLayerRemove() {
       return (e) => {
+        this.notClickEvent = true;
         this.$confirm("此操作将永久删除, 是否继续?", "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
@@ -271,10 +329,11 @@ export default {
             });
             this.flushData();
           });
+        this.notClickEvent = false;
       };
     },
     onLayerCreated() {
-      console.log(this.layerGroup)
+      console.log(this.lineGroup)
 
       return (e) => {
         console.log(this.geomanTempGroup)
@@ -416,29 +475,29 @@ export default {
     loadMap() {
       let map = L.map("map", {
         center: this.centerP, // 地图中心
-        zoom: 13, //缩放比列
+        zoom: 16, //缩放比列
         zoomControl: false, //禁用 + - 按钮
         doubleClickZoom: false, // 禁用双击放大
         attributionControl: false, // 移除右下角leaflet标识
       });
 
       let normalm = L.tileLayer.chinaProvider("TianDiTu.Normal.Map", {
-          maxZoom: 18,
+          maxZoom: 19,
           minZoom: 5,
           //tileSize: 512,
         }),
         normala = L.tileLayer.chinaProvider("TianDiTu.Normal.Annotion", {
-          maxZoom: 18,
+          maxZoom: 19,
           minZoom: 5,
           //tileSize: 512,
         }),
         imgm = L.tileLayer.chinaProvider("TianDiTu.Satellite.Map", {
-          maxZoom: 18,
+          maxZoom: 19,
           minZoom: 5,
           //tileSize: 512,
         }),
         imga = L.tileLayer.chinaProvider("TianDiTu.Satellite.Annotion", {
-          maxZoom: 18,
+          maxZoom: 19,
           minZoom: 5,
           //tileSize: 512,
         });
@@ -471,14 +530,27 @@ export default {
         })
         .addTo(map);
 
+      this.manageLayerGroup(map);
       //   this.map.removeLayer(normal)  // 移除图层
-      this.layerGroup = L.featureGroup()
-        .on("click", this.clickLayer)
-        .addTo(map); //添加featureGroup统一管理交互
-      this.layerGroup.on("mouseover", this.mouseoverLine);
-      this.layerGroup.on("mouseout", this.mouseoutLine);
+
       //map.on("click",(e)=>{console.log(e)});
       return map;
+    },
+    manageLayerGroup(map) {
+      this.lineGroup
+          .on("click", this.clickLayer)
+          .on("mouseover", this.mouseoverLine)
+          .on("mouseout", this.mouseoutLine)
+          .addTo(map); //添加featureGroup统一管理交互
+      for (let key in this.lineGroup._layers) {
+        this.lineGroup._layers[key].on("pm:edit", (e) => {
+          this.updatedLayers.add(key);
+        });
+      }
+
+      this.heatLineGroup.addTo(map);
+      this.ribbonGroup.addTo(map);
+      this.markerGroup.addTo(map);
     },
     mouseoverLine: function (e) {
       if (e.propagatedFrom.isPipe === true) {
@@ -498,7 +570,7 @@ export default {
       }
     },
     clickLayer: function (e) {
-      if (this.mode === "normal") {
+      if (this.mode === "normal" || this.notClickEvent === true) {
         return;
       }
       if (e.propagatedFrom.isPipe === true) {
@@ -526,7 +598,7 @@ export default {
       //L.PM.setOptIn(true);
       this.changeGeomanDefaultIcon(map);
       map.pm.setLang("zh");
-      map.pm.setGlobalOptions({ layerGroup: this.layerGroup });
+      map.pm.setGlobalOptions({ layerGroup: this.lineGroup });
       // add leaflet-geoman controls with some options to the map
       map.pm.setPathOptions({
         //组件绘制的颜色

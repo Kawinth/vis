@@ -16,7 +16,7 @@ class RiverContour {
         svg.setAttribute('width', width);
         svg.setAttribute('height', height);
         svg.setAttribute('viewBox', "0 0 "+width+" "+height);
-        svg.setAttribute('style',"background:rgba(135,206,235,0.3);");
+        //svg.setAttribute('style',"background:rgba(135,206,235,0.3);");
         this.svgElement = svg;
         this.bubbles = new BubbleSet();
         this.anchors = [];

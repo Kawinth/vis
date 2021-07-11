@@ -50,11 +50,14 @@
       <el-form-item label="起点液压" class="item">
         <avue-input v-model="pipeLineInfo.hydraulicPressure"></avue-input>
       </el-form-item>
-      <el-form-item label="水力摩阻系数" class="item">
+      <el-form-item label="摩阻系数" class="item">
         <avue-input v-model="pipeLineInfo.frictionCoefficient"></avue-input>
       </el-form-item>
       <el-form-item label="管径" class="item">
         <avue-input v-model="pipeLineInfo.diameter"></avue-input>
+      </el-form-item>
+      <el-form-item label="分组编号" class="item">
+        <avue-input v-model="pipeLineInfo.groupNumber"></avue-input>
       </el-form-item>
       <el-form-item label="像素宽度" class="item">
         <avue-input v-model="pipeLineInfo.lineWeight"></avue-input>
