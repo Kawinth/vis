@@ -89,7 +89,7 @@
             var ctx = this._ctx;
             ctx.globalCompositeOperation = "source-over";
             ctx.lineCap = "round";
-            this._drawOutline(ctx);
+            //this._drawOutline(ctx);
             this._drawHeatLine(ctx);
             return this;
         },

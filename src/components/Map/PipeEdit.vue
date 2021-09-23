@@ -13,16 +13,9 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import Info from "../OperationPanel/PipelineInfoEditWindow";
 import {mapMutations, mapState} from "vuex";
 import "./components/heat-line.js";
-import { RiverContour } from "./components/river-contour";
+import {RiverContour} from "./components/river-contour";
 
-import {
-  getList,
-  getMarkerList,
-  deleteMarker,
-  updateMarker,
-  deletePipe,
-  updatePipe,
-} from "@/api/pipe-network";
+import {deleteMarker, deletePipe, getList, getMarkerList, updateMarker, updatePipe,} from "@/api/pipe-network";
 
 export default {
   name: "LMap",
@@ -36,11 +29,15 @@ export default {
       editingMarker: {},
       //用来判断当前事件是否是点击事件，防止触发点击事件
       notClickEvent: false,
-      centerP: { lng: 118.3092373345947, lat: 29.708865719744868 },
+      //黄山
+      //centerP: {lng: 118.3092373345947, lat: 29.708865719744868},
+      //合肥
+      centerP: {lng: 117.26296471923827, lat: 31.832022434850202},
       markers: [],
       groupedPipeline: [],
       updatedLayers: new Set(),
-      geomanTempGroup: L.featureGroup(),
+
+      //分组管理图层
       lineGroup: L.featureGroup(),
       markerGroup: L.featureGroup(),
       heatLineGroup: L.featureGroup(),
@@ -57,6 +54,7 @@ export default {
       lineVisible: (state) => state.view.lineVisible,
       ribbonVisible: (state) => state.view.ribbonVisible,
       heatLineVisible: (state) => state.view.heatLineVisible,
+      markerVisible: (state) => state.view.markerVisible
     }),
     pipes: function () {
       return this.groupedPipeline.pipelines;
@@ -77,6 +75,13 @@ export default {
         this.map.pm.removeControls();
       }
     },
+    markerVisible: function (newV, oldV) {
+      if (newV) {
+        this.drawMarker();
+      } else {
+        this.markerGroup.clearLayers();
+      }
+    },
     lineVisible: function (newV, oldV) {
       if (newV) {
         this.drawLine();
@@ -85,7 +90,6 @@ export default {
       }
     },
     heatLineVisible: function (newV, oldV) {
-      console.log(this.heatLineVisible)
       if (newV) {
         this.drawHeatLine();
       } else {
@@ -94,8 +98,17 @@ export default {
     },
     ribbonVisible: function (newV, oldV) {
       if (newV) {
+        // let heatLine = document.querySelector(".leaflet-overlay-pane canvas");
+        // if (heatLine != null) {
+        //   heatLine.style.zIndex = 800;
+        // }
+
         this.drawRibbon();
       } else {
+        // let heatLine = document.querySelector(".leaflet-overlay-pane canvas");
+        // if (heatLine != null) {
+        //   heatLine.style.zIndex = 100;
+        // }
         this.ribbonGroup.clearLayers();
       }
     },
@@ -136,6 +149,7 @@ export default {
       if (this.ribbonVisible) {
         this.drawRibbon();
       }
+      // if (this.)
       this.drawMarker();
 
     },
@@ -172,9 +186,9 @@ export default {
       for (let i in this.markers) {
         let marker = L.marker(
             [this.markers[i].latitude, this.markers[i].longitude],
-            { icon: myIcon }
+            {icon: myIcon}
         )
-            .addTo(this.lineGroup)
+            .addTo(this.markerGroup)
             .bindPopup(
                 '<span style="color:blue; ">' + this.markers[i].name + "</span>",
                 { className: "mypopup" }
@@ -195,7 +209,7 @@ export default {
           },
           weight: 5,
           outlineColor: "#000000",
-          outlineWidth: 1,
+          outlineWidth: 0,
           extraValue: heatLine.weight,
         });
 
@@ -211,9 +225,9 @@ export default {
 
     },
     drawRibbon() {
+      console.log(this.ribbons)
       for (let ribbon of this.ribbons){
         let anchors = ribbon;
-        console.log(this.heatLineNodes);
         //let zoomIndex = this.map._zoom;
         let mapSize = this.map.getPixelBounds().getSize();
         let myBubble = new RiverContour(mapSize.x.toString(), mapSize.y.toString());
@@ -228,6 +242,7 @@ export default {
           nodes.push(point)
           //l.push(nodeTemp)
         }
+
         for (let anchor of anchors) {
           let latLng = L.latLng(anchor);
           let point = this.map.latLngToLayerPoint(latLng);
@@ -333,10 +348,10 @@ export default {
       };
     },
     onLayerCreated() {
-      console.log(this.lineGroup)
+
 
       return (e) => {
-        console.log(this.geomanTempGroup)
+
         if (e.shape === "Marker") {
           this.editingMarker = {
             id: null,
@@ -461,59 +476,119 @@ export default {
           Satellite: {
             Map: "https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
             Annotion:
-              "https://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
+                "https://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
           },
           Terrain: {
             Map: "https://t{s}.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
             Annotion:
-              "https://t{s}.tianditu.gov.cn/cta_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
+                "https://t{s}.tianditu.gov.cn/cta_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=8ac4041d5674349dab32efedfd36082a",
           },
           Subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
         },
+        GaoDe: {
+          Normal: {
+            Map: '//webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'
+          },
+          Satellite: {
+            Map: '//webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+            Annotion: '//webst0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}'
+          },
+          Subdomains: ["1", "2", "3", "4"]
+        },
+
+        Google: {
+          Normal: {
+            Map: "//www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}"
+          },
+          Satellite: {
+            Map: "//www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}",
+            Annotion: "//www.google.cn/maps/vt?lyrs=y@189&gl=cn&x={x}&y={y}&z={z}"
+          },
+          Subdomains: []
+        },
+
+        Geoq: {
+          Normal: {
+            Map: "//map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}",
+            PurplishBlue: "//map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
+            Gray: "//map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetGray/MapServer/tile/{z}/{y}/{x}",
+            Warm: "//map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetWarm/MapServer/tile/{z}/{y}/{x}",
+          },
+          Theme: {
+            Hydro: "//thematic.geoq.cn/arcgis/rest/services/ThematicMaps/WorldHydroMap/MapServer/tile/{z}/{y}/{x}"
+          },
+          Subdomains: []
+        },
+
+        OSM: {
+          Normal: {
+            Map: "//{s}.tile.osm.org/{z}/{x}/{y}.png",
+          },
+          Subdomains: ['a', 'b', 'c']
+        },
+
+        Baidu: {
+          Normal: {
+            Map: '//online{s}.map.bdimg.com/onlinelabel/?qt=tile&x={x}&y={y}&z={z}&styles=pl&scaler=1&p=1'
+          },
+          Satellite: {
+            Map: '//shangetu{s}.map.bdimg.com/it/u=x={x};y={y};z={z};v=009;type=sate&fm=46',
+            Annotion: '//online{s}.map.bdimg.com/tile/?qt=tile&x={x}&y={y}&z={z}&styles=sl&v=020'
+          },
+          Subdomains: '0123456789',
+          tms: true
+        }
       };
     },
     loadMap() {
       let map = L.map("map", {
         center: this.centerP, // 地图中心
-        zoom: 16, //缩放比列
+        zoom: 12, //缩放比列
         zoomControl: false, //禁用 + - 按钮
         doubleClickZoom: false, // 禁用双击放大
         attributionControl: false, // 移除右下角leaflet标识
       });
 
       let normalm = L.tileLayer.chinaProvider("TianDiTu.Normal.Map", {
-          maxZoom: 19,
-          minZoom: 5,
-          //tileSize: 512,
-        }),
-        normala = L.tileLayer.chinaProvider("TianDiTu.Normal.Annotion", {
-          maxZoom: 19,
-          minZoom: 5,
-          //tileSize: 512,
-        }),
-        imgm = L.tileLayer.chinaProvider("TianDiTu.Satellite.Map", {
-          maxZoom: 19,
-          minZoom: 5,
-          //tileSize: 512,
-        }),
-        imga = L.tileLayer.chinaProvider("TianDiTu.Satellite.Annotion", {
-          maxZoom: 19,
-          minZoom: 5,
-          //tileSize: 512,
-        });
+            maxZoom: 19,
+            minZoom: 5,
+            //tileSize: 512,
+          }),
+          normala = L.tileLayer.chinaProvider("TianDiTu.Normal.Annotion", {
+            maxZoom: 19,
+            minZoom: 5,
+            //tileSize: 512,
+          }),
+          imgm = L.tileLayer.chinaProvider("TianDiTu.Satellite.Map", {
+            maxZoom: 19,
+            minZoom: 5,
+            //tileSize: 512,
+          }),
+          imga = L.tileLayer.chinaProvider("TianDiTu.Satellite.Annotion", {
+            maxZoom: 19,
+            minZoom: 5,
+            //tileSize: 512,
+          });
+
       let OpenStreetMap_Mapnik = L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          maxZoom: 19,
-          //tileSize: 512,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }
+          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          {
+            maxZoom: 19,
+            //tileSize: 512,
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          }
       );
+      let gray = L.tileLayer.chinaProvider('Geoq.Normal.Gray', {
+        maxZoom: 19,
+        minZoom: 5
+      });
       let normal = L.layerGroup([normalm, normala]),
-        image = L.layerGroup([imgm, imga]);
-      normal.addTo(map);
+          image = L.layerGroup([imgm, imga]);
+      gray.addTo(map);
+
       let baseLayers = {
+        灰色: gray,
         地图: normal,
         OSM: OpenStreetMap_Mapnik,
         影像: image,
@@ -547,11 +622,11 @@ export default {
           this.updatedLayers.add(key);
         });
       }
-
       this.heatLineGroup.addTo(map);
       this.ribbonGroup.addTo(map);
       this.markerGroup.addTo(map);
     },
+
     mouseoverLine: function (e) {
       if (e.propagatedFrom.isPipe === true) {
         let selectedPipe = this.findPipe(e.layer.id);
@@ -642,4 +717,5 @@ export default {
   width: 100%;
   height: 100%;
 }
+
 </style>

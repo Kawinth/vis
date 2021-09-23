@@ -17,7 +17,6 @@
           placeholder="Please enter location"
           @select="selectLocation"
           :trigger-on-focus="false"
-
       >
         <el-button slot="append" @click="skipToLocation"><i class="el-icon-place"
                                                             style="color:#6699CC; font-size: x-large"></i></el-button>
@@ -37,7 +36,7 @@
       <i class="el-icon-link" style="color:#ccb666; font-size: x-large" @click="changeRibbonVisible"></i>
     </el-col>
     <el-col :span="1">
-      <i class="el-icon-news" style="color:#cc6666; font-size: x-large"></i>
+      <i class="el-icon-news" style="color:#cc6666; font-size: x-large" @click="changeMarkerVisible"></i>
     </el-col>
     <el-col :span="4" :offset="3" style="">
       <div id="button-container">
@@ -87,6 +86,9 @@ export default {
     },
     changeRibbonVisible() {
       this.$store.commit('view/commitRibbonVisible');
+    },
+    changeMarkerVisible() {
+      this.$store.commit('view/commitMarkerVisible');
     },
     intoView() {
       this.$store.commit("map/SET_MODE", "normal");

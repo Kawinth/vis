@@ -6,7 +6,8 @@ const state = {
     markerInfo: null,
     lineVisible: true,
     ribbonVisible: false,
-    heatLineVisible: false
+    heatLineVisible: false,
+    markerVisible: true
 }
 
 const mutations = {
@@ -31,6 +32,9 @@ const mutations = {
     commitHeatLineVisible: (state) => {
         state.heatLineVisible = !state.heatLineVisible;
     },
+    commitMarkerVisible: (state) => {
+        state.markerVisible = !state.markerVisible;
+    }
 }
 
 const actions = {

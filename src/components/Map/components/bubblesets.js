@@ -624,27 +624,20 @@ function BubbleSet() {
 
   var lastThreshold = Number.NaN;
 
-  this.createOutline = function(members, nonmem, edges) {
-    if(!members.length) return [];
+  this.createOutline = function (members) {
+    if (!members.length) return [];
 
-    var memberItems = members.map(function(m) {
-      return new Rectangle(m);
-    });
-    //console.log(memberItems)
-    var nonMembers = nonmem.map(function(m) {
+    var memberItems = members.map(function (m) {
       return new Rectangle(m);
     });
 
     // calculate and store virtual edges
-    calculateVirtualEdges(memberItems, nonMembers);
+    calculateVirtualEdges(memberItems);
 
-    edges && edges.forEach(function(e) {
-      virtualEdges.push(new Line(e.x1, e.y1, e.x2, e.y2));
-    });
 
     activeRegion = null;
-    memberItems.forEach(function(m) {
-      if(!activeRegion) {
+    memberItems.forEach(function (m) {
+      if (!activeRegion) {
         activeRegion = new Rectangle(m.rect());
       } else {
         activeRegion.add(m);
@@ -652,7 +645,7 @@ function BubbleSet() {
     });
     //console.log(memberItems.toString());
 
-    virtualEdges.forEach(function(l) {
+    virtualEdges.forEach(function (l) {
       activeRegion.add(l.rect());
     });
 
@@ -676,29 +669,29 @@ function BubbleSet() {
     var iterations = 0;
 
     // add the aggregate and all it's members and virtual edges
-    fillPotentialArea(activeRegion, memberItems, nonMembers, potentialArea);
+    fillPotentialArea(activeRegion, memberItems, potentialArea);
 
     // try to march, check if surface contains all items
-    while((!calculateContour(surface, activeRegion, memberItems, nonMembers, potentialArea)) && (iterations < maxMarchingIterations)) {
+    while ((!calculateContour(surface, activeRegion, memberItems, potentialArea)) && (iterations < maxMarchingIterations)) {
       surface.clear();
       iterations += 1;
 
       // reduce negative influences first; this will allow the surface to
       // pass without making it fatter all around (which raising the threshold does)
-      if(iterations <= maxMarchingIterations * 0.5) {
-        if(negativeNodeInfluenceFactor != 0) {
+      if (iterations <= maxMarchingIterations * 0.5) {
+        if (negativeNodeInfluenceFactor != 0) {
           threshold *= 0.95;
           negativeNodeInfluenceFactor *= 0.8;
-          fillPotentialArea(activeRegion, memberItems, nonMembers, potentialArea);
-        }        
+          fillPotentialArea(activeRegion, memberItems, potentialArea);
+        }
       }
 
       // after half the iterations, start increasing positive energy and lowering the threshold
-      if(iterations > maxMarchingIterations * 0.5) {
+      if (iterations > maxMarchingIterations * 0.5) {
         threshold *= 0.95;
         nodeInfluenceFactor *= 1.2;
         edgeInfluenceFactor *= 1.2;
-        fillPotentialArea(activeRegion, memberItems, nonMembers, potentialArea);
+        fillPotentialArea(activeRegion, memberItems, potentialArea);
       }
     }
 
@@ -737,50 +730,23 @@ function BubbleSet() {
     //   console.log(tempList[i]);
     //   fhull.add(new Point(tempList[i][0], tempList[i][1]));
     // }
-    for(var i = 0, j = 0;j < size;j += 1,i += thisSkip) {
+    for (var i = 0, j = 0; j < size; j += 1, i += thisSkip) {
       fhull.add(new Point(surface.get(i).x() + xcorner, surface.get(i).y() + ycorner));
     }
 
-    if(!debug) {
-      // getting rid of unused memory preventing a memory leak
-      activeRegion = null;
-      potentialArea = null;
-    }
 
     //console.log(fhull)
     return fhull.list();
   };
-  var debug = false;
-  this.debug = function(_) {
-    if(!arguments.length) return debug;
-    debug = !!_;
-  }
-  // call after createOutline
-  this.debugPotentialArea = function() {
-    debug || console.warn("debug mode should be activated");
-    var rects = [];
-    for(var x = 0;x < potentialArea.width();x += 1) {
-      for(var y = 0;y < potentialArea.height();y += 1) {
-        rects.push({
-          x: x * pixelGroup + Math.floor(activeRegion.minX()),
-          y: y * pixelGroup + Math.floor(activeRegion.minY()),
-          width: pixelGroup,
-          height: pixelGroup,
-          value: potentialArea.get(x, y),
-          threshold: lastThreshold,
-        });
-      }
-    }
-    return rects;
-  };
 
-  function calculateContour(contour, bounds, members, nonMembers, potentialArea) {
+
+  function calculateContour(contour, bounds, members, potentialArea) {
     // if no surface could be found stop
-    if(!new MarchingSquares(contour, potentialArea, pixelGroup, threshold).march()) return false;
-    return testContainment(contour, bounds, members, nonMembers)[0];
+    if (!new MarchingSquares(contour, potentialArea, pixelGroup, threshold).march()) return false;
+    return testContainment(contour, bounds, members)[0];
   }
 
-  function testContainment(contour, bounds, members, nonMembers) {
+  function testContainment(contour, bounds, members) {
     // precise bounds checking
     // copy hull values
     var g = [];
@@ -790,8 +756,8 @@ function BubbleSet() {
       var line = null;
       var first = null;
       var crossings = 0;
-      g.forEach(function(cur) {
-        if(!line) {
+      g.forEach(function (cur) {
+        if (!line) {
           line = new Line(cur.x(), cur.y(), cur.x(), cur.y());
           first = cur;
           return;
@@ -800,7 +766,7 @@ function BubbleSet() {
         line.y1(line.y2());
         line.x2(cur.x());
         line.y2(cur.y());
-        if(line.cuts(p)) {
+        if (line.cuts(p)) {
           crossings += 1;
         }
       });
@@ -861,26 +827,16 @@ function BubbleSet() {
         // check precise bounds if rough passes
         containsAll = containsAll && contains(g, p);
       });
-      nonMembers.forEach(function(item) {
-        var p = new Point(item.centerX(), item.centerY());
-        // check rough bounds
-        if(gbounds.contains(p)) {
-          // check precise bounds if rough passes
-          if(contains(g, p)) {
-            containsExtra = true;
-          }
-        }
-      });
     }
     return [ containsAll, containsExtra ];
   }
 
-  function fillPotentialArea(activeArea, members, nonMembers, potentialArea) {
+  function fillPotentialArea(activeArea, members, potentialArea) {
     var influenceFactor = 0;
     // add all positive energy (included items) first, as negative energy
     // (morphing) requires all positives to be already set
-    if(nodeInfluenceFactor) {
-      members.forEach(function(item) {
+    if (nodeInfluenceFactor) {
+      members.forEach(function (item) {
         // add node energy
         influenceFactor = nodeInfluenceFactor;
         var nodeRDiff = nodeR0 - nodeR1;
@@ -890,29 +846,14 @@ function BubbleSet() {
       }); // end processing node items of this aggregate
     } // end processing positive node energy
 
-    if(edgeInfluenceFactor) {
+    if (edgeInfluenceFactor) {
       // add the influence of all the virtual edges
       influenceFactor = edgeInfluenceFactor;
       var inva = ((edgeR0 - edgeR1) * (edgeR0 - edgeR1));
 
-      if(virtualEdges.length > 0) {
+      if (virtualEdges.length > 0) {
         calculateLinesInfluence(potentialArea, influenceFactor / inva, edgeR1, virtualEdges, activeArea);
       }
-    }
-
-    // calculate negative energy contribution for all other visible items within bounds
-    if(negativeNodeInfluenceFactor) {
-      nonMembers.forEach(function(item) {
-        // if item is within influence bounds, add potential
-        if(activeArea.intersects(item)) {
-          // subtract influence
-          influenceFactor = negativeNodeInfluenceFactor;
-          var nodeRDiff = nodeR0 - nodeR1;
-          // using inverse a for numerical stability
-          var inva = nodeRDiff * nodeRDiff;
-          calculateRectangleNegativeInfluence(potentialArea, influenceFactor / inva, nodeR1, item);
-        }
-      });
     }
   }
 
@@ -934,24 +875,24 @@ function BubbleSet() {
     });
   }
 
-  function calculateVirtualEdges(items, nonMembers) {
+  function calculateVirtualEdges(items) {
     var visited = [];
     virtualEdges = [];
     calculateCentroidDistances(items);
-    items.sort(function(a, b) {
+    items.sort(function (a, b) {
       return a.cmp(b);
     });
 
-    items.forEach(function(item) {
-      var lines = connectItem(nonMembers, item, visited);
-      lines.forEach(function(l) {
+    items.forEach(function (item) {
+      var lines = connectItem(item, visited);
+      lines.forEach(function (l) {
         virtualEdges.push(l);
       });
       visited.push(item);
     });
   }
 
-  function connectItem(nonMembers, item, visited) {
+  function connectItem(item, visited) {
     var scannedLines = [];
     var linesToCheck = [];
 
@@ -959,16 +900,16 @@ function BubbleSet() {
     var closestNeighbour = null;
     var minLengthSq = Number.POSITIVE_INFINITY;
     // discover the nearest neighbour with minimal interference items
-    visited.forEach(function(neighbourItem) {
+    visited.forEach(function (neighbourItem) {
       var nCenter = new Point(neighbourItem.centerX(), neighbourItem.centerY());
       var distanceSq = itemCenter.distanceSq(nCenter);
 
       var completeLine = new Line(itemCenter.x(), itemCenter.y(), nCenter.x(), nCenter.y());
       // augment distance by number of interfering items
-      var numberInterferenceItems = countInterferenceItems(nonMembers, completeLine);
+      let numberInterferenceItems = 0;
 
       // TODO is there a better function to consider interference in nearest-neighbour checking? This is hacky
-      if(distanceSq * (numberInterferenceItems + 1) * (numberInterferenceItems + 1) < minLengthSq) {
+      if (distanceSq * (numberInterferenceItems + 1) * (numberInterferenceItems + 1) < minLengthSq) {
         closestNeighbour = neighbourItem;
         minLengthSq = distanceSq * (numberInterferenceItems + 1) * (numberInterferenceItems + 1);
       }
@@ -985,66 +926,12 @@ function BubbleSet() {
       var iterations = 0;
       var intersections = [];
       intersections.length = 4;
-      var numIntersections = 0;
+
       while(hasIntersection && iterations < maxRoutingIterations) {
         hasIntersection = false;
         while(!hasIntersection && linesToCheck.length) {
           var line = linesToCheck.pop();
           // resolve intersections in order along edge
-          var closestItem = getCenterItem(nonMembers, line);
-          
-          if(closestItem) {
-            numIntersections = Intersection.testIntersection(line, closestItem, intersections);
-            // 2 intersections = line passes through item
-            if(numIntersections === 2) {
-              var tempMorphBuffer = morphBuffer;
-              var movePoint = rerouteLine(closestItem, tempMorphBuffer, intersections, true);
-              // test the movePoint already exists
-              var foundFirst = pointExists(movePoint, linesToCheck) || pointExists(movePoint, scannedLines);
-              var pointInside = isPointInsideNonMember(movePoint, nonMembers);
-              // prefer first corner, even if buffer becomes very small
-              while(!foundFirst && pointInside && (tempMorphBuffer >= 1)) {
-                // try a smaller buffer
-                tempMorphBuffer /= 1.5;
-                movePoint = rerouteLine(closestItem, tempMorphBuffer, intersections, true);
-                foundFirst = pointExists(movePoint, linesToCheck) || pointExists(movePoint, scannedLines);
-                pointInside = isPointInsideNonMember(movePoint, nonMembers);
-              }
-
-              if(movePoint && (!foundFirst) && (!pointInside)) {
-                // add 2 rerouted lines to check
-                linesToCheck.push(new Line(line.x1(), line.y1(), movePoint.x(), movePoint.y()));
-                linesToCheck.push(new Line(movePoint.x(), movePoint.y(), line.x2(), line.y2()));
-                // indicate intersection found
-                hasIntersection = true;
-              }
-
-              // if we didn't find a valid point around the
-              // first corner, try the second
-              if(!hasIntersection) {
-                tempMorphBuffer = morphBuffer;
-                movePoint = rerouteLine(closestItem, tempMorphBuffer, intersections, false);
-                var foundSecond = pointExists(movePoint, linesToCheck) || pointExists(movePoint, scannedLines);
-                pointInside = isPointInsideNonMember(movePoint, nonMembers);
-                // if both corners have been used, stop; otherwise gradually reduce buffer and try second corner
-                while(!foundSecond && pointInside && (tempMorphBuffer >= 1)) {
-                  // try a smaller buffer
-                  tempMorphBuffer /= 1.5;
-                  movePoint = rerouteLine(closestItem, tempMorphBuffer, intersections, false);
-                  foundSecond = pointExists(movePoint, linesToCheck) || pointExists(movePoint, scannedLines);
-                  pointInside = isPointInsideNonMember(movePoint, nonMembers);
-                }
-
-                if(movePoint && (!foundSecond)) {
-                  // add 2 rerouted lines to check
-                  linesToCheck.push(new Line(line.x1(), line.y1(), movePoint.x(), movePoint.y()));
-                  linesToCheck.push(new Line(movePoint.x(), movePoint.y(), line.x2(), line.y2()));
-                  // indicate intersection found
-                  hasIntersection = true;
-                }
-              }
-            }
-          } // end check of closest item
 
           // no intersection found, mark this line as completed
           if(!hasIntersection) {
@@ -1061,34 +948,12 @@ function BubbleSet() {
       }
 
       // try to merge consecutive lines if possible
-      while(scannedLines.length) {
-        var line1 = scannedLines.pop();
-        if(scannedLines.length) {
-          var line2 = scannedLines.pop();
-          var mergeLine = new Line(line1.x1(), line1.y1(), line2.x2(), line2.y2());
-          // resolve intersections in order along edge
-          var closestItem = getCenterItem(nonMembers, mergeLine);
-          // merge most recent line and previous line
-          if(!closestItem) {
-            scannedLines.push(mergeLine);
-          } else {
-            linesToCheck.push(line1);
-            scannedLines.push(line2);
-          }
-        } else {
-          linesToCheck.push(line1);
-        }
-      }
+
       scannedLines = linesToCheck;
     }
     return scannedLines;
   }
 
-  function isPointInsideNonMember(point, nonMembers) {
-    return nonMembers.some(function(testRectangle) {
-      return testRectangle.contains(point);
-    });
-  }
 
   function pointExists(pointToCheck, lines) {
     var found = false;
@@ -1121,16 +986,6 @@ function BubbleSet() {
     return closestItem;
   }
 
-  function countInterferenceItems(interferenceItems, testLine) {
-    return interferenceItems.reduce(function(count, interferenceItem) {
-      if(interferenceItem.intersectsLine(testLine)) {
-        if(Intersection.fractionToLineCenter(interferenceItem, testLine) >= 0) {
-          return count + 1;
-        }
-      }
-      return count;
-    }, 0);
-  }
 
   function calculateLinesInfluence(potentialArea, influenceFactor, r1, lines, activeRegion) {
     lines.forEach(function(line) {
@@ -1411,17 +1266,6 @@ BubbleSet.linePtSegDistSq = function(lx1, ly1, lx2, ly2, x, y) {
     lenSq = 0;
   }
   return lenSq;
-};
-
-BubbleSet.addPadding = function(rects, radius) {
-  return rects.map(function(r) {
-    return {
-      "x": r["x"] - radius,
-      "y": r["y"] - radius,
-      "width": r["width"] + 2*radius,
-      "height": r["height"] + 2*radius,
-    };
-  });
 };
 
 function PointPath(_points) {
