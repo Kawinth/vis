@@ -1,4 +1,4 @@
-import {BSplineShapeGenerator, BubbleSet, PointPath, ShapeSimplifier,} from "./bubblesets.js";
+import {BSplineShapeGenerator, BubbleOutline, PointPath, ShapeSimplifier,} from "./outline.js";
 import * as d3 from 'd3';
 
 class RiverContour {
@@ -13,7 +13,7 @@ class RiverContour {
         svg.setAttribute('viewBox', "0 0 "+width+" "+height);
         //svg.setAttribute('style',"background:rgba(135,206,235,0.3);");
         this.svgElement = svg;
-        this.bubbles = new BubbleSet();
+        this.bubbles = new BubbleOutline();
         this.anchors = [];
         var mySvg = this.svgElement;
         this.items = this.appendSVG(mySvg, "g");
@@ -47,12 +47,18 @@ class RiverContour {
         svg.append('g')
             .call(yAxis).attr("transform", "translate(0,0)").selectAll("text");
     }
-    drawBubble(point){
-        
-        //this.pathB = this.appendSVG(mySvg, "path");
-        d3.selectAll("circle").remove();
+
+    addToBubble(point) {
         this.addRect(this.rectanglesA, "cornflowerblue", point.x, point.y);
     }
+
+    drawBubble(point) {
+
+        //this.pathB = this.appendSVG(mySvg, "path");
+        //d3.selectAll("circle").remove();
+        this.addRect(this.rectanglesA, "cornflowerblue", point.x, point.y);
+    }
+
     attr(elem, attr) {
         // console.log(attr)
         for (let key in attr) {
@@ -94,7 +100,7 @@ class RiverContour {
 
     updateOutline(rectangles, color, path) {
         var pad = 0;
-        //console.log(BubbleSet.addPadding(rectangles, pad))
+        //console.log(BubbleOutline.addPadding(rectangles, pad))
         var list = this.bubbles.createOutline(
             rectangles
         );
@@ -132,7 +138,6 @@ class RiverContour {
             width: 0,
             height: 0
         });
-       this.update();
     }
 
 }

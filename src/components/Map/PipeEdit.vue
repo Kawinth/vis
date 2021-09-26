@@ -226,32 +226,32 @@ export default {
     },
     drawRibbon() {
       console.log(this.ribbons)
-      for (let ribbon of this.ribbons){
+      let mapSize = this.map.getPixelBounds().getSize();
+      console.log(this.map.getCenter())
+      for (let ribbon of this.ribbons) {
         let anchors = ribbon;
         //let zoomIndex = this.map._zoom;
-        let mapSize = this.map.getPixelBounds().getSize();
         let myBubble = new RiverContour(mapSize.x.toString(), mapSize.y.toString());
         //let crs = this.map.options.crs;
         let points = []
-        let nodes = []
-        let l = []
-        let l2 = []
-        for(let node of ribbon){
-          let nodeTemp = L.latLng(node);
-          let point = this.map.latLngToLayerPoint(nodeTemp);
-          nodes.push(point)
-          //l.push(nodeTemp)
-        }
+        //let nodes = []
+        //let l = []
+        //let l2 = []
+        // for (let node of ribbon) {
+        //   let nodeTemp = L.latLng(node);
+        //   let point = this.map.latLngToContainerPoint(nodeTemp);
+        //   nodes.push(point)
+        //   //l.push(nodeTemp)
+        // }
 
         for (let anchor of anchors) {
           let latLng = L.latLng(anchor);
-          let point = this.map.latLngToLayerPoint(latLng);
-          l2.push(latLng);
-          //points.push(point)*/
-
-
-          myBubble.drawBubble(point);
+          let point = this.map.latLngToContainerPoint(latLng);
+          //l2.push(latLng);
+          points.push(point)
+          myBubble.addToBubble(point);
         }
+        myBubble.update();
         L.svgOverlay(myBubble.svgElement, this.map.getBounds()).addTo(this.ribbonGroup);
       }
 

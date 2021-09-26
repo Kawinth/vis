@@ -1,9 +1,6 @@
-/**
- * Created by krause on 2014-10-25.
- */
 "use strict";
 
-function BubbleSet() {
+function BubbleOutline() {
   var thatBS = this;
 
   function Rectangle(_rect) {
@@ -270,7 +267,7 @@ function BubbleSet() {
       return x <= cross;
     };
     this.ptSegDistSq = function(x, y) {
-      return BubbleSet.linePtSegDistSq(x1, y1, x2, y2, x, y);
+      return BubbleOutline.linePtSegDistSq(x1, y1, x2, y2, x, y);
     };
     this.ptClose = function(x, y, r) {
       // check whether the point is outside the bounding rectangle with padding r
@@ -387,7 +384,7 @@ function BubbleSet() {
         }
       }
     }
-    
+
     // top
     testLine(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY());
     // left
@@ -567,30 +564,30 @@ function BubbleSet() {
   MarchingSquares.E = 2;
   MarchingSquares.W = 3;
 
-  var maxRoutingIterations = BubbleSet.DEFAULT_MAX_ROUTING_ITERATIONS;
-  var maxMarchingIterations = BubbleSet.DEFAULT_MAX_MARCHING_ITERATIONS;
-  var pixelGroup = BubbleSet.DEFAULT_PIXEL_GROUP;
-  var edgeR0 = BubbleSet.DEFAULT_EDGE_R0;
-  var edgeR1 = BubbleSet.DEFAULT_EDGE_R1;
-  var nodeR0 = BubbleSet.DEFAULT_NODE_R0;
-  var nodeR1 = BubbleSet.DEFAULT_NODE_R1;
-  var morphBuffer = BubbleSet.DEFAULT_MORPH_BUFFER;
-  var skip = BubbleSet.DEFAULT_SKIP;
+  var maxRoutingIterations = BubbleOutline.DEFAULT_MAX_ROUTING_ITERATIONS;
+  var maxMarchingIterations = BubbleOutline.DEFAULT_MAX_MARCHING_ITERATIONS;
+  var pixelGroup = BubbleOutline.DEFAULT_PIXEL_GROUP;
+  var edgeR0 = BubbleOutline.DEFAULT_EDGE_R0;
+  var edgeR1 = BubbleOutline.DEFAULT_EDGE_R1;
+  var nodeR0 = BubbleOutline.DEFAULT_NODE_R0;
+  var nodeR1 = BubbleOutline.DEFAULT_NODE_R1;
+  var morphBuffer = BubbleOutline.DEFAULT_MORPH_BUFFER;
+  var skip = BubbleOutline.DEFAULT_SKIP;
 
-  this.maxRoutingIterations = function(_) {
-    if(!arguments.length) return maxRoutingIterations;
+  this.maxRoutingIterations = function (_) {
+    if (!arguments.length) return maxRoutingIterations;
     maxRoutingIterations = _;
   };
-  this.maxMarchingIterations = function(_) {
-    if(!arguments.length) return maxMarchingIterations;
+  this.maxMarchingIterations = function (_) {
+    if (!arguments.length) return maxMarchingIterations;
     maxMarchingIterations = _;
   };
-  this.pixelGroup = function(_) {
-    if(!arguments.length) return pixelGroup;
+  this.pixelGroup = function (_) {
+    if (!arguments.length) return pixelGroup;
     pixelGroup = _;
   };
-  this.edgeR0 = function(_) {
-    if(!arguments.length) return edgeR0;
+  this.edgeR0 = function (_) {
+    if (!arguments.length) return edgeR0;
     edgeR0 = _;
   };
   this.edgeR1 = function(_) {
@@ -1221,25 +1218,25 @@ function BubbleSet() {
       return new Point(rectangle.maxX() + rerouteBuffer, rectangle.minY() - rerouteBuffer);
     }
     // go around left
-    if(topIntersect.getPoint().x() < bottomIntersect.getPoint().x()) // bottom left
+    if (topIntersect.getPoint().x() < bottomIntersect.getPoint().x()) // bottom left
       return new Point(rectangle.minX() - rerouteBuffer, rectangle.maxY() + rerouteBuffer);
     // top left
     return new Point(rectangle.minX() - rerouteBuffer, rectangle.minY() - rerouteBuffer);
   }
-} // BubbleSet
+} // BubbleOutline
 
 // override these defaults to change the spacing and bubble precision; affects performance and appearance
-BubbleSet.DEFAULT_MAX_ROUTING_ITERATIONS = 100;  // number of times to run the algorithm to refine the path finding in difficult areas
-BubbleSet.DEFAULT_MAX_MARCHING_ITERATIONS = 20; // number of times to refine the boundary
-BubbleSet.DEFAULT_PIXEL_GROUP = 4; // the resolution of the algorithm in square pixels
-BubbleSet.DEFAULT_EDGE_R0 = 10; // the distance from edges at which energy is 1 (full influence)
-BubbleSet.DEFAULT_EDGE_R1 = 20; // the distance from edges at which energy is 0 (no influence)
-BubbleSet.DEFAULT_NODE_R0 = 15; // the distance from nodes which energy is 1 (full influence)
-BubbleSet.DEFAULT_NODE_R1 = 50; // the distance from nodes at which energy is 0 (no influence)
-BubbleSet.DEFAULT_MORPH_BUFFER = BubbleSet.DEFAULT_NODE_R0; // the amount of space to move the virtual edge when wrapping around obstacles
-BubbleSet.DEFAULT_SKIP = 8; // the default number of contour steps to skip when building the contour (higher is less precise but faster)
+BubbleOutline.DEFAULT_MAX_ROUTING_ITERATIONS = 100;  // number of times to run the algorithm to refine the path finding in difficult areas
+BubbleOutline.DEFAULT_MAX_MARCHING_ITERATIONS = 20; // number of times to refine the boundary
+BubbleOutline.DEFAULT_PIXEL_GROUP = 4; // the resolution of the algorithm in square pixels
+BubbleOutline.DEFAULT_EDGE_R0 = 10; // the distance from edges at which energy is 1 (full influence)
+BubbleOutline.DEFAULT_EDGE_R1 = 20; // the distance from edges at which energy is 0 (no influence)
+BubbleOutline.DEFAULT_NODE_R0 = 15; // the distance from nodes which energy is 1 (full influence)
+BubbleOutline.DEFAULT_NODE_R1 = 50; // the distance from nodes at which energy is 0 (no influence)
+BubbleOutline.DEFAULT_MORPH_BUFFER = BubbleOutline.DEFAULT_NODE_R0; // the amount of space to move the virtual edge when wrapping around obstacles
+BubbleOutline.DEFAULT_SKIP = 8; // the default number of contour steps to skip when building the contour (higher is less precise but faster)
 
-BubbleSet.linePtSegDistSq = function(lx1, ly1, lx2, ly2, x, y) {
+BubbleOutline.linePtSegDistSq = function (lx1, ly1, lx2, ly2, x, y) {
   // taken from JDK 8 java.awt.geom.Line2D#ptSegDistSq(double, double, double, double, double, double)
   var x1 = lx1;
   var y1 = ly1;
@@ -1249,13 +1246,13 @@ BubbleSet.linePtSegDistSq = function(lx1, ly1, lx2, ly2, x, y) {
   var py = y - y1;
   var dotprod = px * x2 + py * y2;
   var projlenSq;
-  if(dotprod <= 0) {
+  if (dotprod <= 0) {
     projlenSq = 0;
   } else {
     px = x2 - px;
     py = y2 - py;
     dotprod = px * x2 + py * y2;
-    if(dotprod <= 0) {
+    if (dotprod <= 0) {
       projlenSq = 0;
     } else {
       projlenSq = dotprod * dotprod / (x2 * x2 + y2 * y2);
@@ -1383,7 +1380,7 @@ function ShapeSimplifier(_tolerance) {
       var p = path.get(ix);
       var s = sthat.startPoint();
       var e = sthat.endPoint();
-      return BubbleSet.linePtSegDistSq(s[0], s[1], e[0], e[1], p[0], p[1]);
+      return BubbleOutline.linePtSegDistSq(s[0], s[1], e[0], e[1], p[0], p[1]);
     };
     this.canTakeNext = function() {
       if(!sthat.validEnd()) return false;
@@ -1487,4 +1484,4 @@ function BSplineShapeGenerator() {
     return res;
   };
 } // BSplineShapeGenerator
-export { BubbleSet, PointPath, ShapeSimplifier, BSplineShapeGenerator };
+export {BubbleOutline, PointPath, ShapeSimplifier, BSplineShapeGenerator};
