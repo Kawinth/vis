@@ -1,6 +1,7 @@
 <template>
   <div>
     <div id="map"></div>
+    <point-info-edit v-if="pointInfo.visible" :pointInfo=pointInfo></point-info-edit>
   </div>
 </template>
 
@@ -10,16 +11,19 @@ import * as L from "leaflet";
 import "leaflet.chinatmsproviders";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import Info from "../OperationPanel/PipelineInfoEditWindow";
+
+
 import {mapMutations, mapState} from "vuex";
 import "./components/heat-line.js";
 import {RiverContour} from "./components/river-contour";
 
-import {deleteMarker, deletePipe, getList, getMarkerList, updateMarker, updatePipe,} from "@/api/pipe-network";
+import {deleteMarker, deletePipe, getList, getMarkerList, getPipe, updateMarker, updatePipe} from "@/api/pipe-network";
+import PointInfoEdit from "../OperationPanel/PointInfoEdit";
+
 
 export default {
   name: "LMap",
-  components: { Info },
+  components: {PointInfoEdit},
   data() {
     return {
       map: null,
@@ -42,6 +46,15 @@ export default {
       markerGroup: L.featureGroup(),
       heatLineGroup: L.featureGroup(),
       ribbonGroup: L.featureGroup(),
+
+      //点数据信息
+      pointInfo: {
+        pipeId: 0,
+        index: -1,
+        value: 0.0,
+        weight: 0.0,
+        visible: false
+      }
     };
   },
 
@@ -130,6 +143,8 @@ export default {
       setMarkerInfoVisible: 'view/commitMarkerInfoEditVisible',
       setEditingMarker: 'view/commitMarkerInfo',
       changeServerStatus: 'map/SET_SERVER_CHANGED',
+      setHeatLineLayer: 'view/commitHeatLineLayer',
+      setEditingLine: 'view/commitEditingLineLayer'
     }),
     async flushData() {
       this.lineGroup.clearLayers();
@@ -149,9 +164,7 @@ export default {
       if (this.ribbonVisible) {
         this.drawRibbon();
       }
-      // if (this.)
-      this.drawMarker();
-
+      if (this.markerVisible) this.drawMarker();
     },
     drawLine() {
       //绘制管线
@@ -198,6 +211,7 @@ export default {
       }
     },
     drawHeatLine() {
+      let i = 0;
       for (let heatLine of this.heatLines) {
         let heatLineLayer = L.heatLine(heatLine.node, {
           min: 150,
@@ -212,22 +226,25 @@ export default {
           outlineWidth: 0,
           extraValue: heatLine.weight,
         });
-
+        heatLineLayer.id = this.pipes[i++].id;
         heatLineLayer
             .bindPopup((e) => {
               return "HHHHHHH";
             })
             .addTo(this.heatLineGroup);
+
       }
+      this.setHeatLineLayer(this.heatLineGroup);
+      this.heatLineGroup.on('click', (e) => {
+        this.setEditingLine(e.layer);
+      })
       //自动缩放到最佳比例
       //let bounds = heatLineLayer.getBounds();
       //this.map.fitBounds(bounds);
 
     },
     drawRibbon() {
-      console.log(this.ribbons)
       let mapSize = this.map.getPixelBounds().getSize();
-      console.log(this.map.getCenter())
       for (let ribbon of this.ribbons) {
         let anchors = ribbon;
         //let zoomIndex = this.map._zoom;
@@ -271,9 +288,32 @@ export default {
           radius: 10,
         }).addTo(this.map);
       }*/
+    },
 
+    /**
+     * 编辑模式下单击线
+     */
+    updateInEditMode() {
+      return (e) => {
+        let points = e.layer._latlngs;
+        let currentPoint = e.markerEvent.latlng;
+        //当前编辑点在所在线组中的下标
+        let i = 0;
+        for (let key in points) {
+          if (currentPoint.lng === points[key].lng && currentPoint.lat === points[key].lat) i = key;
+        }
 
-
+        //{pipeId: points[i].id, i}
+        let pipeId = e.layer.id, index = i;
+        getPipe({pipeId, index}).then((res) => {
+          this.pointInfo.index = index;
+          this.pointInfo.pipeId = pipeId;
+          this.pointInfo.weight = res.data.weight;
+          this.pointInfo.value = res.data.value;
+          this.pointInfo.visible = true;
+        });
+        console.log(e)
+      }
     },
     /**
      * 使用闭包避免获取不到Vue组件的上下文
@@ -348,10 +388,7 @@ export default {
       };
     },
     onLayerCreated() {
-
-
       return (e) => {
-
         if (e.shape === "Marker") {
           this.editingMarker = {
             id: null,
@@ -585,17 +622,14 @@ export default {
       });
       let normal = L.layerGroup([normalm, normala]),
           image = L.layerGroup([imgm, imga]);
-      gray.addTo(map);
-
+      //gray.addTo(map);
       let baseLayers = {
         灰色: gray,
         地图: normal,
         OSM: OpenStreetMap_Mapnik,
         影像: image,
       };
-
       let overlayLayers = {};
-
       L.control.layers(baseLayers, overlayLayers).addTo(map);
       L.control
         .zoom({
@@ -607,10 +641,10 @@ export default {
 
       this.manageLayerGroup(map);
       //   this.map.removeLayer(normal)  // 移除图层
-
       //map.on("click",(e)=>{console.log(e)});
       return map;
     },
+
     manageLayerGroup(map) {
       this.lineGroup
           .on("click", this.clickLayer)
@@ -623,6 +657,7 @@ export default {
         });
       }
       this.heatLineGroup.addTo(map);
+      this.heatLineGroup.on("pm:vertexclick", this.updateInEditMode());
       this.ribbonGroup.addTo(map);
       this.markerGroup.addTo(map);
     },
@@ -635,15 +670,16 @@ export default {
         });
       }
     },
+
     mouseoutLine: function (e) {
       if (e.propagatedFrom.isPipe === true) {
         let selectedPipe = this.findPipe(e.layer.id);
-
         e.layer.setStyle({
           weight: selectedPipe.lineWeight,
         });
       }
     },
+
     clickLayer: function (e) {
       if (this.mode === "normal" || this.notClickEvent === true) {
         return;
@@ -657,7 +693,7 @@ export default {
         layer.setStyle({
           weight: 5,
           dashArray: "",
-          color: "#666",
+          color: "#ffffff",
           fillOpacity: 0.7,
         });
         this.formTemp = this.findPipe(layer.id);
@@ -669,6 +705,7 @@ export default {
         this.setMarkerInfoVisible(true);
       }
     },
+
     initGeoman(map) {
       //L.PM.setOptIn(true);
       this.changeGeomanDefaultIcon(map);
@@ -695,7 +732,7 @@ export default {
       //map.on("pm:drawend", this.onLayerCreated2());
       map.on("pm:globaldrawmodetoggled", this.exitDrawMode());
       map.on("pm:globaleditmodetoggled", this.batchUpdate());
-      map.on("pm:globaldragmodetoggled", this.batchUpdate());
+      //this.lineGroup.on("pm:vertexclick", this.updateInEditMode());
       map.on("pm:remove", this.onLayerRemove());
     },
   },
@@ -713,9 +750,13 @@ export default {
 .cd-span {
   color: seagreen;
 }
+
 #map {
   width: 100%;
   height: 100%;
 }
 
+.leaflet-container {
+  background: white;
+}
 </style>

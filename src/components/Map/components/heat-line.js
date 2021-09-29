@@ -131,6 +131,7 @@
                     gradient.addColorStop(0, "rgb(" + gradientStartRGB.join(",") + ")");
                     gradient.addColorStop(1, "rgb(" + gradientEndRGB.join(",") + ")");
                     ctx.strokeStyle = gradient;
+                    //线的宽度
                     ctx.lineWidth = this._extraValue[j];
                     ctx.beginPath();
                     ctx.moveTo(pointStart.x, pointStart.y);

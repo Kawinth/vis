@@ -2,19 +2,11 @@
   <section>
     <aside>
       <label>
-        <span>Weight - </span>
-        1 <input id="weight" type="range" min="1" max="16" value="5" /> 16
+        <span>线宽增减： </span>
+        -7 <input id="weight" type="range" min="-7" max="8" value="5" v-model="changedWeight" @change="changeWeight"/> 8
       </label>
       <br />
-      <label>
-        <span>Outline width - </span>
-        0 <input id="outlineWidth" type="range" min="0" max="8" value="1" /> 8
-      </label>
-      <label>
-        <span>Outline color</span>
-        <input id="outlineColor" type="color" value="#000000" />
-      </label>
-      <br />
+
       <label>
         <span>Min - </span>
         100
@@ -25,6 +17,8 @@
             max="250"
             value="150"
             steps="5"
+            v-model="minOrMax"
+            @change="changeMinAndMax('max')"
         />
         250
       </label>
@@ -38,24 +32,23 @@
             max="500"
             value="350"
             steps="5"
+            v-model="minOrMax"
+            @change="changeMinAndMax('max')"
         />
         500
       </label>
+      <br/>
       <label>
-        <span>Palette color 1</span>
-        <input id="paletteColor1" type="color" value="#008800" />
+        <span>0%</span>
+        <input id="paletteColor1" type="color" v-model="color1" @change="changeColor"/>
       </label>
       <label>
-        <span>Palette color 2</span>
-        <input id="paletteColor2" type="color" value="#ffff00" />
+        <span>50%</span>
+        <input id="paletteColor2" type="color" v-model="color2" @change="changeColor"/>
       </label>
       <label>
-        <span>Palette color 3</span>
-        <input id="paletteColor3" type="color" value="#ff0000" />
-      </label>
-      <label>
-        <span>Smooth factor - </span>
-        0 <input type="range" id="smoothFactor" value="1" min="0" max="10" /> 10
+        <span>100%</span>
+        <input id="paletteColor3" type="color" v-model="color3" @change="changeColor"/>
       </label>
     </aside>
   </section>
@@ -63,7 +56,51 @@
 
 <script>
 export default {
-  name: "index"
+  name: "index",
+  data() {
+    return {
+      changedWeight: 0,
+      color1: "#008800",
+      color2: "#ffff00",
+      color3: "#ff0000",
+      minOrMax: 0
+    }
+  },
+  computed: {
+    //所有的heatLine
+    heatLineLayer() {
+      return this.$store.state.view.heatLineLayer
+    },
+    //当前点击的heatLine
+    editingLine() {
+      return this.$store.state.view.editingLineLayer
+    }
+  },
+  methods: {
+    changeWeight() {
+      let arr = this.editingLine.options.extraValue;
+      let temp = arr.forEach((item, index, arr) => {
+        arr[index] += Number(this.changedWeight);
+      })
+      this.editingLine.redraw()
+    },
+    changeColor() {
+      this.heatLineLayer.setStyle({
+        'palette': {
+          0.0: this.color1,
+          0.5: this.color2,
+          1.0: this.color3
+        }
+      });
+    },
+    changeMinAndMax(key) {
+      let val = Number(this.minOrMax);
+      if (key === 'max') {
+        this.heatLineLayer.setStyle({max: val})
+      }
+
+    }
+  }
 }
 </script>
 

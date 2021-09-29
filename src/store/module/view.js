@@ -4,10 +4,12 @@ const state = {
     pipeLineInfo: null,
     markerInfoEditVisible: false,
     markerInfo: null,
-    lineVisible: true,
+    lineVisible: false,
     ribbonVisible: false,
-    heatLineVisible: false,
-    markerVisible: true
+    heatLineVisible: true,
+    markerVisible: false,
+    heatLineLayer: null,
+    editingLineLayer: null
 }
 
 const mutations = {
@@ -34,7 +36,13 @@ const mutations = {
     },
     commitMarkerVisible: (state) => {
         state.markerVisible = !state.markerVisible;
-    }
+    },
+    commitHeatLineLayer: (state, layer) => {
+        state.heatLineLayer = layer
+    },
+    commitEditingLineLayer: (state, layer) => {
+        state.editingLineLayer = layer
+    },
 }
 
 const actions = {

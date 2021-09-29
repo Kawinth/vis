@@ -8,6 +8,22 @@ export function getList(page) {
   })
 }
 
+export function updatePipePoint(page) {
+  return request({
+    url: '/api/vis/pipeline/point/update',
+    method: 'post',
+    params: {...page}
+  })
+}
+
+export function getPipe(page) {
+  return request({
+    url: '/api/vis/pipeline/point',
+    method: 'get',
+    params: {...page}
+  })
+}
+
 export function getMarkerList(page) {
   return request({
     url: '/api/gis/marker/list',

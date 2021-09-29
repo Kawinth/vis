@@ -34,9 +34,10 @@
 
 </style>
 <script>
-import LMap from "@/components/Map/PipeEdit";
+import LMap from "@/components/Map/index";
 import NavBar from "@/components/NavBar";
 import SketchMask from "@/views/SketchMask";
+
 export default {
   components: {SketchMask, NavBar, LMap}
 }
