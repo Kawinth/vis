@@ -11,6 +11,8 @@ const state = {
   infoVisible: false,
   focusHeatLineNodes: [],
   leafletMap: null,
+  outlineGenerator: null,
+  ribbonNodes: null
 }
 
 const mutations = {
@@ -23,15 +25,21 @@ const mutations = {
   SET_PIPE_LIST: (state,list) => {
     state.pipeLineList = list;
   },
-  SET_INFO_VISIBLE:(state,visible) => {
+  SET_INFO_VISIBLE: (state, visible) => {
     state.infoVisible = visible;
   },
-  SET_HEAT_LINE_NODES:(state,nodes) => {
+  SET_HEAT_LINE_NODES: (state, nodes) => {
     state.focusHeatLineNodes = nodes;
   },
-  SET_LEAFLET_MAP:(state,map) => {
+  SET_LEAFLET_MAP: (state, map) => {
     state.leafletMap = map;
-  }
+  },
+  SET_OUTLINE_GENERATOR: (state, object) => {
+    state.outlineGenerator = object;
+  },
+  SET_RIBBON_NODES: (state, object) => {
+    state.ribbonNodes = object;
+  },
 }
 
 const actions = {

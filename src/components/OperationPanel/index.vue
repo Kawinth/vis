@@ -17,8 +17,8 @@
             max="250"
             value="150"
             steps="5"
-            v-model="minOrMax"
-            @change="changeMinAndMax('max')"
+            v-model="min"
+            @change="changeMinAndMax('min')"
         />
         250
       </label>
@@ -32,7 +32,7 @@
             max="500"
             value="350"
             steps="5"
-            v-model="minOrMax"
+            v-model="max"
             @change="changeMinAndMax('max')"
         />
         500
@@ -50,11 +50,20 @@
         <span>100%</span>
         <input id="paletteColor3" type="color" v-model="color3" @change="changeColor"/>
       </label>
+      <br/>
+      <label>
+        <span>轮廓能量场： </span>
+        20 <input type="range" min="20" max="200" value="5" v-model="changedOutlineWidth"
+                  @change="changeOutlineWidth"/> 200
+      </label>
     </aside>
+
   </section>
 </template>
 
 <script>
+import * as L from "leaflet";
+
 export default {
   name: "index",
   data() {
@@ -63,7 +72,9 @@ export default {
       color1: "#008800",
       color2: "#ffff00",
       color3: "#ff0000",
-      minOrMax: 0
+      min: 0,
+      max: 250,
+      changedOutlineWidth: 20,
     }
   },
   computed: {
@@ -74,6 +85,16 @@ export default {
     //当前点击的heatLine
     editingLine() {
       return this.$store.state.view.editingLineLayer
+    },
+    //轮廓图生成器
+    outlineGenerator() {
+      return this.$store.state.map.outlineGenerator;
+    },
+    ribbons() {
+      return this.$store.state.map.ribbonNodes;
+    },
+    map() {
+      return this.$store.state.map.leafletMap;
     }
   },
   methods: {
@@ -94,11 +115,28 @@ export default {
       });
     },
     changeMinAndMax(key) {
-      let val = Number(this.minOrMax);
       if (key === 'max') {
-        this.heatLineLayer.setStyle({max: val})
+        this.heatLineLayer.setStyle({max: Number(this.max)});
+      } else if (key === 'min') {
+        this.heatLineLayer.setStyle({min: Number(this.min)});
       }
-
+    },
+    changeOutlineWidth() {
+      this.outlineGenerator.removeAllChildren(this.outlineGenerator.outlineGroup);
+      let generator = this.outlineGenerator.pathGenerator;
+      generator.outlineWidth(this.changedOutlineWidth);
+      console.log(this.changedOutlineWidth)
+      this.redrawRibbon();
+    },
+    redrawRibbon() {
+      for (let ribbon of this.ribbons) {
+        for (let anchor of ribbon) {
+          let latLng = L.latLng(anchor);
+          let point = this.map.latLngToContainerPoint(latLng);
+          this.outlineGenerator.pushPoint(point);
+        }
+        this.outlineGenerator.draw();
+      }
     }
   }
 }

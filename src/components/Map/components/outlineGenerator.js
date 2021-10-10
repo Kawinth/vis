@@ -1,7 +1,10 @@
 "use strict";
 
-function BubbleOutline() {
+function OutlineGenerator() {
   var thatBS = this;
+
+  var outlineWidth = 100;
+  var squarePixel = 4;
 
   function Rectangle(_rect) {
     var that = this;
@@ -11,8 +14,8 @@ function BubbleOutline() {
     var height = 0;
     var centroidDistance = 0;
 
-    this.rect = function(r) {
-      if(!arguments.length) return {
+    this.rect = function (r) {
+      if (!arguments.length) return {
         x: x,
         y: y,
         width: width,
@@ -23,40 +26,40 @@ function BubbleOutline() {
       width = +r.width;
       height = +r.height;
     };
-    this.minX = function() {
+    this.minX = function () {
       return x;
     };
-    this.minY = function() {
+    this.minY = function () {
       return y;
     };
-    this.maxX = function() {
+    this.maxX = function () {
       return x + width;
     };
-    this.maxY = function() {
+    this.maxY = function () {
       return y + height;
     };
-    this.centerX = function() {
+    this.centerX = function () {
       return x + width * 0.5;
     };
-    this.centerY = function() {
+    this.centerY = function () {
       return y + height * 0.5;
     };
-    this.width = function() {
+    this.width = function () {
       return width;
     };
-    this.height = function() {
+    this.height = function () {
       return height;
     };
-    this.centroidDistance = function(cd) {
-      if(!arguments.length) return centroidDistance;
+    this.centroidDistance = function (cd) {
+      if (!arguments.length) return centroidDistance;
       centroidDistance = cd;
     };
-    this.cmp = function(rect) {
-      if(centroidDistance < rect.centroidDistance()) return -1;
-      if(centroidDistance > rect.centroidDistance()) return 0;
+    this.cmp = function (rect) {
+      if (centroidDistance < rect.centroidDistance()) return -1;
+      if (centroidDistance > rect.centroidDistance()) return 0;
       return 0;
     };
-    this.add = function(rect) {
+    this.add = function (rect) {
       var tmpx = Math.min(that.minX(), rect.minX());
       var tmpy = Math.min(that.minY(), rect.minY());
       var maxX = Math.max(that.maxX(), rect.maxX());
@@ -66,23 +69,23 @@ function BubbleOutline() {
       width = maxX - x;
       height = maxY - y;
     };
-    this.contains = function(p) {
+    this.contains = function (p) {
       var px = p.x();
       var py = p.y();
       return that.containsPt(px, py);
     };
-    this.containsPt = function(px, py) {
-      if(px < x || px >= x + width) return false;
+    this.containsPt = function (px, py) {
+      if (px < x || px >= x + width) return false;
       return !(py < y || py >= y + height);
     };
-    this.intersects = function(rect) {
-      if(that.width() <= 0 || that.height() <= 0 || rect.width() <= 0 || rect.height() <= 0) return false;
+    this.intersects = function (rect) {
+      if (that.width() <= 0 || that.height() <= 0 || rect.width() <= 0 || rect.height() <= 0) return false;
       return (rect.maxX() > that.minX() &&
-              rect.maxY() > that.minY() &&
-              rect.minX() < that.maxX() &&
-              rect.minY() < that.maxY());
+          rect.maxY() > that.minY() &&
+          rect.minX() < that.maxX() &&
+          rect.minY() < that.maxY());
     };
-    this.intersectsLine = function(line) {
+    this.intersectsLine = function (line) {
       var x1 = line.x1();
       var y1 = line.y1();
       var x2 = line.x2();
@@ -90,23 +93,23 @@ function BubbleOutline() {
       // taken from JDK 8 java.awt.geom.Rectangle2D.Double#intersectsLine(double, double, double, double)
       var out1;
       var out2;
-      if((out2 = that.outcode(x2, y2)) === 0) {
+      if ((out2 = that.outcode(x2, y2)) === 0) {
         return true;
       }
-      while((out1 = that.outcode(x1, y1)) !== 0) {
-        if((out1 & out2) !== 0) {
+      while ((out1 = that.outcode(x1, y1)) !== 0) {
+        if ((out1 & out2) !== 0) {
           return false;
         }
-        if((out1 & (Rectangle.OUT_LEFT | Rectangle.OUT_RIGHT)) !== 0) {
+        if ((out1 & (Rectangle.OUT_LEFT | Rectangle.OUT_RIGHT)) !== 0) {
           var x = that.minX();
-          if((out1 & Rectangle.OUT_RIGHT) !== 0) {
+          if ((out1 & Rectangle.OUT_RIGHT) !== 0) {
             x += that.width();
           }
           y1 = y1 + (x - x1) * (y2 - y1) / (x2 - x1);
           x1 = x;
         } else {
           var y = that.minY();
-          if((out1 & Rectangle.OUT_BOTTOM) !== 0) {
+          if ((out1 & Rectangle.OUT_BOTTOM) !== 0) {
             y += that.height();
           }
           x1 = x1 + (y - y1) * (x2 - x1) / (y2 - y1);
@@ -115,17 +118,17 @@ function BubbleOutline() {
       }
       return true;
     };
-    this.outcode = function(px, py) {
+    this.outcode = function (px, py) {
       // taken from JDK 8 java.awt.geom.Rectangle2D.Double#outcode(double, double)
       var out = 0;
-      if(width <= 0) {
+      if (width <= 0) {
         out |= Rectangle.OUT_LEFT | Rectangle.OUT_RIGHT;
-      } else if(px < x) {
+      } else if (px < x) {
         out |= Rectangle.OUT_LEFT;
-      } else if(px > x + width) {
+      } else if (px > x + width) {
         out |= Rectangle.OUT_RIGHT;
       }
-      if(height <= 0) {
+      if (height <= 0) {
         out |= Rectangle.OUT_TOP | Rectangle.OUT_BOTTOM;
       } else if (py < y) {
         out |= Rectangle.OUT_TOP;
@@ -135,11 +138,11 @@ function BubbleOutline() {
       return out;
     };
 
-    if(arguments.length && _rect) {
+    if (arguments.length && _rect) {
       this.rect(_rect);
     }
   } // Rectangle
-  Rectangle.prototype.toString = function() {
+  Rectangle.prototype.toString = function () {
     return "Rectangle[x=" + this.minX() + ", y=" + this.minY() + ", w=" + this.width() + ", h=" + this.height() + "]";
   };
   Rectangle.OUT_LEFT = 1;
@@ -267,7 +270,7 @@ function BubbleOutline() {
       return x <= cross;
     };
     this.ptSegDistSq = function(x, y) {
-      return BubbleOutline.linePtSegDistSq(x1, y1, x2, y2, x, y);
+      return OutlineGenerator.linePtSegDistSq(x1, y1, x2, y2, x, y);
     };
     this.ptClose = function(x, y, r) {
       // check whether the point is outside the bounding rectangle with padding r
@@ -564,15 +567,13 @@ function BubbleOutline() {
   MarchingSquares.E = 2;
   MarchingSquares.W = 3;
 
-  var maxRoutingIterations = BubbleOutline.DEFAULT_MAX_ROUTING_ITERATIONS;
-  var maxMarchingIterations = BubbleOutline.DEFAULT_MAX_MARCHING_ITERATIONS;
-  var pixelGroup = BubbleOutline.DEFAULT_PIXEL_GROUP;
-  var edgeR0 = BubbleOutline.DEFAULT_EDGE_R0;
-  var edgeR1 = BubbleOutline.DEFAULT_EDGE_R1;
-  var nodeR0 = BubbleOutline.DEFAULT_NODE_R0;
-  var nodeR1 = BubbleOutline.DEFAULT_NODE_R1;
-  var morphBuffer = BubbleOutline.DEFAULT_MORPH_BUFFER;
-  var skip = BubbleOutline.DEFAULT_SKIP;
+  var maxRoutingIterations = OutlineGenerator.DEFAULT_MAX_ROUTING_ITERATIONS;
+  var maxMarchingIterations = OutlineGenerator.DEFAULT_MAX_MARCHING_ITERATIONS;
+  var edgeR0 = OutlineGenerator.DEFAULT_EDGE_R0;
+  var edgeR1 = OutlineGenerator.DEFAULT_EDGE_R1;
+  var nodeR0 = OutlineGenerator.DEFAULT_NODE_R0;
+  var morphBuffer = OutlineGenerator.DEFAULT_MORPH_BUFFER;
+  var skip = OutlineGenerator.DEFAULT_SKIP;
 
   this.maxRoutingIterations = function (_) {
     if (!arguments.length) return maxRoutingIterations;
@@ -582,32 +583,32 @@ function BubbleOutline() {
     if (!arguments.length) return maxMarchingIterations;
     maxMarchingIterations = _;
   };
-  this.pixelGroup = function (_) {
-    if (!arguments.length) return pixelGroup;
-    pixelGroup = _;
+  this.squarePixel = function (_) {
+    if (!arguments.length) return squarePixel;
+    squarePixel = _;
   };
   this.edgeR0 = function (_) {
     if (!arguments.length) return edgeR0;
     edgeR0 = _;
   };
-  this.edgeR1 = function(_) {
-    if(!arguments.length) return edgeR1;
+  this.edgeR1 = function (_) {
+    if (!arguments.length) return edgeR1;
     edgeR1 = _;
   };
-  this.nodeR0 = function(_) {
-    if(!arguments.length) return nodeR0;
+  this.nodeR0 = function (_) {
+    if (!arguments.length) return nodeR0;
     nodeR0 = _;
   };
-  this.nodeR1 = function(_) {
-    if(!arguments.length) return nodeR1;
-    nodeR1 = _;
+  this.outlineWidth = function (_) {
+    if (!arguments.length) return outlineWidth;
+    outlineWidth = _;
   };
-  this.morphBuffer = function(_) {
-    if(!arguments.length) return morphBuffer;
+  this.morphBuffer = function (_) {
+    if (!arguments.length) return morphBuffer;
     morphBuffer = _;
   };
-  this.skip = function(_) {
-    if(!arguments.length) return skip;
+  this.skip = function (_) {
+    if (!arguments.length) return skip;
     skip = _;
   };
 
@@ -647,13 +648,13 @@ function BubbleOutline() {
     });
 
     activeRegion.rect({
-      x: activeRegion.minX() - Math.max(edgeR1, nodeR1) - morphBuffer,
-      y: activeRegion.minY() - Math.max(edgeR1, nodeR1) - morphBuffer,
-      width: activeRegion.width() + 2 * Math.max(edgeR1, nodeR1) + 2 * morphBuffer,
-      height: activeRegion.height() + 2 * Math.max(edgeR1, nodeR1) + 2 * morphBuffer,
+      x: activeRegion.minX() - Math.max(edgeR1, outlineWidth) - morphBuffer,
+      y: activeRegion.minY() - Math.max(edgeR1, outlineWidth) - morphBuffer,
+      width: activeRegion.width() + 2 * Math.max(edgeR1, outlineWidth) + 2 * morphBuffer,
+      height: activeRegion.height() + 2 * Math.max(edgeR1, outlineWidth) + 2 * morphBuffer,
     });
     //console.log(activeRegion);
-    potentialArea = new Area(Math.ceil(activeRegion.width() / pixelGroup), Math.ceil(activeRegion.height() / pixelGroup));
+    potentialArea = new Area(Math.ceil(activeRegion.width() / squarePixel), Math.ceil(activeRegion.height() / squarePixel));
 
     var estLength = (Math.floor(activeRegion.width()) + Math.floor(activeRegion.height())) * 2;
     var surface = new PointList(estLength);
@@ -739,7 +740,7 @@ function BubbleOutline() {
 
   function calculateContour(contour, bounds, members, potentialArea) {
     // if no surface could be found stop
-    if (!new MarchingSquares(contour, potentialArea, pixelGroup, threshold).march()) return false;
+    if (!new MarchingSquares(contour, potentialArea, squarePixel, threshold).march()) return false;
     return testContainment(contour, bounds, members)[0];
   }
 
@@ -836,10 +837,10 @@ function BubbleOutline() {
       members.forEach(function (item) {
         // add node energy
         influenceFactor = nodeInfluenceFactor;
-        var nodeRDiff = nodeR0 - nodeR1;
+        var nodeRDiff = nodeR0 - outlineWidth;
         // using inverse a for numerical stability
         var inva = nodeRDiff * nodeRDiff;
-        calculateRectangleInfluence(potentialArea, influenceFactor / inva, nodeR1, item);
+        calculateRectangleInfluence(potentialArea, influenceFactor / inva, outlineWidth, item);
       }); // end processing node items of this aggregate
     } // end processing positive node energy
 
@@ -988,25 +989,25 @@ function BubbleOutline() {
     lines.forEach(function(line) {
       var lr = line.rect();
       // only traverse the plausible area
-      var startX = potentialArea.bound(Math.floor((lr.minX() - r1 - activeRegion.minX()) / pixelGroup), true);
-      var startY = potentialArea.bound(Math.floor((lr.minY() - r1 - activeRegion.minY()) / pixelGroup), false);
-      var endX = potentialArea.bound(Math.ceil((lr.maxX() + r1 - activeRegion.minX()) / pixelGroup), true);
-      var endY = potentialArea.bound(Math.ceil((lr.maxY() + r1 - activeRegion.minY()) / pixelGroup), false);
+      var startX = potentialArea.bound(Math.floor((lr.minX() - r1 - activeRegion.minX()) / squarePixel), true);
+      var startY = potentialArea.bound(Math.floor((lr.minY() - r1 - activeRegion.minY()) / squarePixel), false);
+      var endX = potentialArea.bound(Math.ceil((lr.maxX() + r1 - activeRegion.minX()) / squarePixel), true);
+      var endY = potentialArea.bound(Math.ceil((lr.maxY() + r1 - activeRegion.minY()) / squarePixel), false);
       // for every point in active part of potentialArea, calculate distance to nearest point on line and add influence
-      for(var y = startY;y < endY;y += 1) {
-        for(var x = startX;x < endX;x += 1) {
+      for (var y = startY; y < endY; y += 1) {
+        for (var x = startX; x < endX; x += 1) {
           // if we are adding negative energy, skip if not already
           // positive; positives have already been added first, and adding
           // negative to <=0 will have no affect on surface
-          if(influenceFactor < 0 && potentialArea.get(x, y) <= 0) {
+          if (influenceFactor < 0 && potentialArea.get(x, y) <= 0) {
             continue;
           }
           // convert back to screen coordinates
-          var tempX = x * pixelGroup + activeRegion.minX();
-          var tempY = y * pixelGroup + activeRegion.minY();
+          var tempX = x * squarePixel + activeRegion.minX();
+          var tempY = y * squarePixel + activeRegion.minY();
           var minDistanceSq = line.ptSegDistSq(tempX, tempY);
           // only influence if less than r1
-          if(minDistanceSq < r1 * r1) {
+          if (minDistanceSq < r1 * r1) {
             var mdr = Math.sqrt(minDistanceSq) - r1;
             potentialArea.set(x, y, potentialArea.get(x, y) + influenceFactor * mdr * mdr);
           }
@@ -1074,20 +1075,20 @@ function BubbleOutline() {
   function calculateRectangleInfluence(potentialArea, influenceFactor, r1, rect) {
     influenceFactor < 0 && console.warn("expected positive influence", influenceFactor);
     // find the affected subregion of potentialArea
-    var startX = potentialArea.bound(Math.floor((rect.minX() - r1 - activeRegion.minX()) / pixelGroup), true);
-    var startY = potentialArea.bound(Math.floor((rect.minY() - r1 - activeRegion.minY()) / pixelGroup), false);
-    var endX = potentialArea.bound(Math.ceil((rect.maxX() + r1 - activeRegion.minX()) / pixelGroup), true);
-    var endY = potentialArea.bound(Math.ceil((rect.maxY() + r1 - activeRegion.minY()) / pixelGroup), false);
+    var startX = potentialArea.bound(Math.floor((rect.minX() - r1 - activeRegion.minX()) / squarePixel), true);
+    var startY = potentialArea.bound(Math.floor((rect.minY() - r1 - activeRegion.minY()) / squarePixel), false);
+    var endX = potentialArea.bound(Math.ceil((rect.maxX() + r1 - activeRegion.minX()) / squarePixel), true);
+    var endY = potentialArea.bound(Math.ceil((rect.maxY() + r1 - activeRegion.minY()) / squarePixel), false);
     // for every point in active subregion of potentialArea, calculate
     // distance to nearest point on rectangle and add influence
-    for(var y = startY;y < endY;y += 1) {
-      for(var x = startX;x < endX;x += 1) {
+    for (var y = startY; y < endY; y += 1) {
+      for (var x = startX; x < endX; x += 1) {
         // convert back to screen coordinates
-        var tempX = x * pixelGroup + activeRegion.minX();
-        var tempY = y * pixelGroup + activeRegion.minY();
+        var tempX = x * squarePixel + activeRegion.minX();
+        var tempY = y * squarePixel + activeRegion.minY();
         var distanceSq = getRectDistSq(rect, tempX, tempY);
         // only influence if less than r1
-        if(distanceSq < r1 * r1) {
+        if (distanceSq < r1 * r1) {
           var dr = Math.sqrt(distanceSq) - r1;
           potentialArea.set(x, y, potentialArea.get(x, y) + influenceFactor * dr * dr);
         }
@@ -1098,25 +1099,25 @@ function BubbleOutline() {
   function calculateRectangleNegativeInfluence(potentialArea, influenceFactor, r1, rect) {
     influenceFactor > 0 && console.warn("expected negative influence", influenceFactor);
     // find the affected subregion of potentialArea
-    var startX = potentialArea.bound(Math.floor((rect.minX() - r1 - activeRegion.minX()) / pixelGroup), true);
-    var startY = potentialArea.bound(Math.floor((rect.minY() - r1 - activeRegion.minY()) / pixelGroup), false);
-    var endX = potentialArea.bound(Math.ceil((rect.maxX() + r1 - activeRegion.minX()) / pixelGroup), true);
-    var endY = potentialArea.bound(Math.ceil((rect.maxY() + r1 - activeRegion.minY()) / pixelGroup), false);
+    var startX = potentialArea.bound(Math.floor((rect.minX() - r1 - activeRegion.minX()) / squarePixel), true);
+    var startY = potentialArea.bound(Math.floor((rect.minY() - r1 - activeRegion.minY()) / squarePixel), false);
+    var endX = potentialArea.bound(Math.ceil((rect.maxX() + r1 - activeRegion.minX()) / squarePixel), true);
+    var endY = potentialArea.bound(Math.ceil((rect.maxY() + r1 - activeRegion.minY()) / squarePixel), false);
     // for every point in active subregion of potentialArea, calculate
     // distance to nearest point on rectangle and add influence
-    for(var y = startY;y < endY;y += 1) {
-      for(var x = startX;x < endX;x += 1) {
+    for (var y = startY; y < endY; y += 1) {
+      for (var x = startX; x < endX; x += 1) {
         // skip if not already positive; positives have already been added first, and adding
         // negative to <= 0 will have no affect on surface
-        if(potentialArea.get(x, y) <= 0) {
+        if (potentialArea.get(x, y) <= 0) {
           continue;
         }
         // convert back to screen coordinates
-        var tempX = x * pixelGroup + activeRegion.minX();
-        var tempY = y * pixelGroup + activeRegion.minY();
+        var tempX = x * squarePixel + activeRegion.minX();
+        var tempY = y * squarePixel + activeRegion.minY();
         var distanceSq = getRectDistSq(rect, tempX, tempY);
         // only influence if less than r1
-        if(distanceSq < r1 * r1) {
+        if (distanceSq < r1 * r1) {
           var dr = Math.sqrt(distanceSq) - r1;
           potentialArea.set(x, y, potentialArea.get(x, y) + influenceFactor * dr * dr);
         }
@@ -1223,20 +1224,20 @@ function BubbleOutline() {
     // top left
     return new Point(rectangle.minX() - rerouteBuffer, rectangle.minY() - rerouteBuffer);
   }
-} // BubbleOutline
+} // OutlineGenerator
 
 // override these defaults to change the spacing and bubble precision; affects performance and appearance
-BubbleOutline.DEFAULT_MAX_ROUTING_ITERATIONS = 100;  // number of times to run the algorithm to refine the path finding in difficult areas
-BubbleOutline.DEFAULT_MAX_MARCHING_ITERATIONS = 20; // number of times to refine the boundary
-BubbleOutline.DEFAULT_PIXEL_GROUP = 4; // the resolution of the algorithm in square pixels
-BubbleOutline.DEFAULT_EDGE_R0 = 10; // the distance from edges at which energy is 1 (full influence)
-BubbleOutline.DEFAULT_EDGE_R1 = 20; // the distance from edges at which energy is 0 (no influence)
-BubbleOutline.DEFAULT_NODE_R0 = 15; // the distance from nodes which energy is 1 (full influence)
-BubbleOutline.DEFAULT_NODE_R1 = 50; // the distance from nodes at which energy is 0 (no influence)
-BubbleOutline.DEFAULT_MORPH_BUFFER = BubbleOutline.DEFAULT_NODE_R0; // the amount of space to move the virtual edge when wrapping around obstacles
-BubbleOutline.DEFAULT_SKIP = 8; // the default number of contour steps to skip when building the contour (higher is less precise but faster)
+OutlineGenerator.DEFAULT_MAX_ROUTING_ITERATIONS = 100;  // number of times to run the algorithm to refine the path finding in difficult areas
+OutlineGenerator.DEFAULT_MAX_MARCHING_ITERATIONS = 20; // number of times to refine the boundary
+OutlineGenerator.DEFAULT_PIXEL_GROUP = 4; // the resolution of the algorithm in square pixels
+OutlineGenerator.DEFAULT_EDGE_R0 = 10; // the distance from edges at which energy is 1 (full influence)
+OutlineGenerator.DEFAULT_EDGE_R1 = 20; // the distance from edges at which energy is 0 (no influence)
+OutlineGenerator.DEFAULT_NODE_R0 = 15; // the distance from nodes which energy is 1 (full influence)
+OutlineGenerator.DEFAULT_NODE_R1 = 50; // the distance from nodes at which energy is 0 (no influence)
+OutlineGenerator.DEFAULT_MORPH_BUFFER = OutlineGenerator.DEFAULT_NODE_R0; // the amount of space to move the virtual edge when wrapping around obstacles
+OutlineGenerator.DEFAULT_SKIP = 8; // the default number of contour steps to skip when building the contour (higher is less precise but faster)
 
-BubbleOutline.linePtSegDistSq = function (lx1, ly1, lx2, ly2, x, y) {
+OutlineGenerator.linePtSegDistSq = function (lx1, ly1, lx2, ly2, x, y) {
   // taken from JDK 8 java.awt.geom.Line2D#ptSegDistSq(double, double, double, double, double, double)
   var x1 = lx1;
   var y1 = ly1;
@@ -1380,7 +1381,7 @@ function ShapeSimplifier(_tolerance) {
       var p = path.get(ix);
       var s = sthat.startPoint();
       var e = sthat.endPoint();
-      return BubbleOutline.linePtSegDistSq(s[0], s[1], e[0], e[1], p[0], p[1]);
+      return OutlineGenerator.linePtSegDistSq(s[0], s[1], e[0], e[1], p[0], p[1]);
     };
     this.canTakeNext = function() {
       if(!sthat.validEnd()) return false;
@@ -1469,19 +1470,23 @@ function BSplineShapeGenerator() {
 
   this.apply = function(path) {
     // covering special cases
-    if(path.size() < 3) return path;
+    if (path.size() < 3) return path;
     // actual b-spline calculation
     var res = new PointPath();
     var count = path.size() + ORDER - 1;
     var g = that.granularity();
     var closed = path.closed();
     res.add(calcPoint(path, START_INDEX - (closed ? 0 : 2), 0));
-    for(var ix = START_INDEX - (closed ? 0 : 2);ix < count + (closed ? 0 : 2);ix += 1) {
-      for(var k = 1;k <= g;k += 1) {
+    for (var ix = START_INDEX - (closed ? 0 : 2); ix < count + (closed ? 0 : 2); ix += 1) {
+      for (var k = 1; k <= g; k += 1) {
         res.add(calcPoint(path, ix, k / g));
       }
     }
     return res;
   };
 } // BSplineShapeGenerator
-export {BubbleOutline, PointPath, ShapeSimplifier, BSplineShapeGenerator};
+
+OutlineGenerator.prototype.setRange = function (range) {
+  this.edgeR0()
+}
+export {OutlineGenerator, PointPath, ShapeSimplifier, BSplineShapeGenerator};

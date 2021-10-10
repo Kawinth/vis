@@ -15,7 +15,7 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 
 import {mapMutations, mapState} from "vuex";
 import "./components/heat-line.js";
-import {RiverContour} from "./components/river-contour";
+import {BubbleLine} from "./components/bubble-line";
 
 import {deleteMarker, deletePipe, getList, getMarkerList, getPipe, updateMarker, updatePipe} from "@/api/pipe-network";
 import PointInfoEdit from "../OperationPanel/PointInfoEdit";
@@ -144,7 +144,9 @@ export default {
       setEditingMarker: 'view/commitMarkerInfo',
       changeServerStatus: 'map/SET_SERVER_CHANGED',
       setHeatLineLayer: 'view/commitHeatLineLayer',
-      setEditingLine: 'view/commitEditingLineLayer'
+      setEditingLine: 'view/commitEditingLineLayer',
+      setOutlineGenerator: 'map/SET_OUTLINE_GENERATOR',
+      setRibbonNodes: 'map/SET_RIBBON_NODES'
     }),
     async flushData() {
       this.lineGroup.clearLayers();
@@ -245,33 +247,18 @@ export default {
     },
     drawRibbon() {
       let mapSize = this.map.getPixelBounds().getSize();
+      let riverContour = new BubbleLine(mapSize.x.toString(), mapSize.y.toString());
+      this.setOutlineGenerator(riverContour);
+      this.setRibbonNodes(this.ribbons)
       for (let ribbon of this.ribbons) {
-        let anchors = ribbon;
-        //let zoomIndex = this.map._zoom;
-        let myBubble = new RiverContour(mapSize.x.toString(), mapSize.y.toString());
-        //let crs = this.map.options.crs;
-        let points = []
-        //let nodes = []
-        //let l = []
-        //let l2 = []
-        // for (let node of ribbon) {
-        //   let nodeTemp = L.latLng(node);
-        //   let point = this.map.latLngToContainerPoint(nodeTemp);
-        //   nodes.push(point)
-        //   //l.push(nodeTemp)
-        // }
-
-        for (let anchor of anchors) {
+        for (let anchor of ribbon) {
           let latLng = L.latLng(anchor);
           let point = this.map.latLngToContainerPoint(latLng);
-          //l2.push(latLng);
-          points.push(point)
-          myBubble.addToBubble(point);
+          riverContour.pushPoint(point);
         }
-        myBubble.update();
-        L.svgOverlay(myBubble.svgElement, this.map.getBounds()).addTo(this.ribbonGroup);
+        riverContour.draw();
       }
-
+      L.svgOverlay(riverContour.svgElement, this.map.getBounds()).addTo(this.ribbonGroup);
       /*for(let latLng of l) {
         L.circle(latLng, {
           color: "red",

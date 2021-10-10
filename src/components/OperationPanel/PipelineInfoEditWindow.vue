@@ -88,7 +88,7 @@
 </template>
 
 <script>
-import {updatePipe, addPipe} from "@/api/pipe-network";
+import {addPipe, updatePipe} from "@/api/pipe-network";
 import {mapMutations} from 'vuex'
 
 export default {
@@ -148,6 +148,7 @@ export default {
           temp.push(array);
         });
         this.pipeLineInfo.nodes = temp;
+        //id为空证明是新建的
         if (this.pipeLineInfo.id !== null) {
           updatePipe(this.pipeLineInfo).then((res) => {
             this.changeServerStatus();
@@ -161,6 +162,7 @@ export default {
       }
     },
     cancel() {
+      console.log(this.nodes)
       console.log(this.pipeLineInfo);
       this.commitVisible(false);
     },
