@@ -23,6 +23,22 @@
           ></el-input>
         </template>
       </el-table-column>
+      <el-table-column label="weight" width="128">
+        <template slot-scope="scope">
+          <el-input
+              placeholder="请输入weight"
+              v-model="scope.row.weight"
+          ></el-input>
+        </template>
+      </el-table-column>
+      <el-table-column label="value" width="128">
+        <template slot-scope="scope">
+          <el-input
+              placeholder="请输入value"
+              v-model="scope.row.value"
+          ></el-input>
+        </template>
+      </el-table-column>
       <el-table-column fixed="right" label="操作" width="120">
         <template slot-scope="scope">
           <el-button
@@ -134,6 +150,7 @@ export default {
     },
     onSubmit() {
       if (this.pipeLineInfo.name === "") {
+        console.log(this.nodes)
         this.$message({
           message: "请填写管线名",
           type: "warning",
@@ -145,6 +162,8 @@ export default {
           let array = [];
           array.push(Number(node.lat));
           array.push(Number(node.lng));
+          this.pipeLineInfo.heatLineValues.push(Number(node.value));
+          this.pipeLineInfo.heatLineWeights.push(Number(node.weight));
           temp.push(array);
         });
         this.pipeLineInfo.nodes = temp;
@@ -162,14 +181,12 @@ export default {
       }
     },
     cancel() {
-      console.log(this.nodes)
-      console.log(this.pipeLineInfo);
       this.commitVisible(false);
     },
   },
   mounted() {
     this.pipeLineInfo.nodes.forEach((node) => {
-      let temp = {lat: node[0], lng: node[1]};
+      let temp = {lat: node[0], lng: node[1], value: 0, weight: 0};
       this.nodes.push(temp);
     });
   },

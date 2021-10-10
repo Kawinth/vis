@@ -63,7 +63,6 @@ export default {
       mode: (state) => state.map.mode,
       infoVisible: (state) => state.map.infoVisible,
       serverChanged: (state) => state.map.serverChanged,
-      heatLineNodes: (state) => state.map.focusHeatLineNodes,
       lineVisible: (state) => state.view.lineVisible,
       ribbonVisible: (state) => state.view.ribbonVisible,
       heatLineVisible: (state) => state.view.heatLineVisible,
@@ -406,6 +405,8 @@ export default {
             name: "",
             nodes: null,
             texture: "",
+            heatLineWeights: [],
+            heatLineValues: []
           };
           this.setEditingPipeline(this.formTemp);
           //将捕捉到的layer里的经纬度数组转换为对应格式
