@@ -158,12 +158,14 @@ export default {
       } else {
         //转换nodes格式为后端需要的数组格式
         let temp = [];
+        this.pipeLineInfo.initialValues = [];
+        this.pipeLineInfo.initialWeights = [];
         this.nodes.forEach((node) => {
           let array = [];
           array.push(Number(node.lat));
           array.push(Number(node.lng));
-          this.pipeLineInfo.heatLineValues.push(Number(node.value));
-          this.pipeLineInfo.heatLineWeights.push(Number(node.weight));
+          this.pipeLineInfo.initialValues.push(Number(node.value));
+          this.pipeLineInfo.initialWeights.push(Number(node.weight));
           temp.push(array);
         });
         this.pipeLineInfo.nodes = temp;
@@ -185,10 +187,25 @@ export default {
     },
   },
   mounted() {
-    this.pipeLineInfo.nodes.forEach((node) => {
-      let temp = {lat: node[0], lng: node[1], value: 0, weight: 0};
-      this.nodes.push(temp);
-    });
+
+    //由于逐个点编辑的功能组件绑定的data是this.nodes，所以加载时先处理一下格式
+    for (let i = 0, n = this.pipeLineInfo.nodes.length; i < n; i++) {
+      if (this.pipeLineInfo.id !== null) { //id不为空证明是新建的，value和weight直接读取记录
+        this.nodes.push({
+          lat: this.pipeLineInfo.nodes[i][0],
+          lng: this.pipeLineInfo.nodes[i][1],
+          value: this.pipeLineInfo.initialValues[i],
+          weight: this.pipeLineInfo.initialWeights[i]
+        });
+      } else {
+        this.nodes.push({
+          lat: this.pipeLineInfo.nodes[i][0],
+          lng: this.pipeLineInfo.nodes[i][1],
+          value: 0,
+          weight: 0
+        });
+      }
+    }
   },
 }
 </script>

@@ -385,7 +385,7 @@ export default {
             equipmentId: null,
           };
           this.setEditingMarker(this.editingMarker);
-          this.setMarkerInfoVisible(true);
+          this.setMarkerInfoVisible();
         }
 
         if (e.shape === "Line") {
@@ -405,8 +405,8 @@ export default {
             name: "",
             nodes: null,
             texture: "",
-            heatLineWeights: [],
-            heatLineValues: []
+            initialWeights: [],
+            initialValues: []
           };
           this.setEditingPipeline(this.formTemp);
           //将捕捉到的layer里的经纬度数组转换为对应格式
@@ -673,18 +673,17 @@ export default {
         return;
       }
       if (e.propagatedFrom.isPipe === true) {
-        console.log(e)
         //若已经打开了编辑窗口，先关闭其他的窗口
         this.setPipelineInfoVisible(false);
         let layer = e.layer;
-        console.log(layer);
         layer.setStyle({
           weight: 5,
           dashArray: "",
-          color: "#ffffff",
+          color: "#0000ff",
           fillOpacity: 0.7,
         });
         this.formTemp = this.findPipe(layer.id);
+        console.log(this.formTemp)
         this.setEditingPipeline(this.formTemp);
         this.setPipelineInfoVisible(true);
       } else {
