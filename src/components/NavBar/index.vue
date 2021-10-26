@@ -29,15 +29,19 @@
     <el-col :span="1" :offset="1">
       <i class="el-icon-sort" style="color:#cc6666; font-size: x-large" @click="changeLineVisible"></i>
     </el-col>
-    <el-col :span="1" >
+    <el-col :span="1">
       <i class="el-icon-share" style="color:#66cc7c; font-size: x-large" @click="changeHeatLineVisible"></i>
     </el-col>
-    <el-col :span="1" >
+    <el-col :span="1">
       <i class="el-icon-link" style="color:#ccb666; font-size: x-large" @click="changeRibbonVisible"></i>
     </el-col>
     <el-col :span="1">
       <i class="el-icon-news" style="color:#cc6666; font-size: x-large" @click="changeMarkerVisible"></i>
     </el-col>
+    <el-col :span="1">
+      <i class="el-icon-s-help" style="color:#12c4b4; font-size: x-large" @click="changeHouseVisible"></i>
+    </el-col>
+
     <el-col :span="4" :offset="3" style="">
       <div id="button-container">
         <div :class="{mode_button:true, editing: mode === 'normal' }" style="border-right:0.5px solid #6699CC;"
@@ -89,6 +93,9 @@ export default {
     },
     changeMarkerVisible() {
       this.$store.commit('view/commitMarkerVisible');
+    },
+    changeHouseVisible() {
+      this.$store.commit('view/commitHouseVisible');
     },
     intoView() {
       this.$store.commit("map/SET_MODE", "normal");

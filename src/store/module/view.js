@@ -9,7 +9,8 @@ const state = {
     heatLineVisible: true,
     markerVisible: false,
     heatLineLayer: null,
-    editingLineLayer: null
+    editingLineLayer: null,
+    houseVisible: false
 }
 
 const mutations = {
@@ -43,6 +44,9 @@ const mutations = {
     commitEditingLineLayer: (state, layer) => {
         state.editingLineLayer = layer
     },
+    commitHouseVisible: (state) => {
+        state.houseVisible = !state.houseVisible
+    }
 }
 
 const actions = {

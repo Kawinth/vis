@@ -13,6 +13,7 @@
     "core-js": "^3.12.1",
     "d3": "^6.7.0",
     "element-ui": "^2.15.3",
+    "heatmap.js": "^2.0.5",
     "leaflet": "^1.7.1",
     "leaflet-geosearch": "^3.3.2",
     "leaflet.chinatmsproviders": "^3.0.4",

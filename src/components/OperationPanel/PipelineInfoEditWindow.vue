@@ -150,7 +150,6 @@ export default {
     },
     onSubmit() {
       if (this.pipeLineInfo.name === "") {
-        console.log(this.nodes)
         this.$message({
           message: "请填写管线名",
           type: "warning",
@@ -201,8 +200,8 @@ export default {
         this.nodes.push({
           lat: this.pipeLineInfo.nodes[i][0],
           lng: this.pipeLineInfo.nodes[i][1],
-          value: 0,
-          weight: 0
+          value: 150 + Math.floor(Math.random() * 100),
+          weight: 3 + Math.ceil(Math.random() * 10)
         });
       }
     }

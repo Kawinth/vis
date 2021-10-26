@@ -53,8 +53,8 @@
       <br/>
       <label>
         <span>轮廓能量场： </span>
-        20 <input type="range" min="20" max="200" value="5" v-model="changedOutlineWidth"
-                  @change="changeOutlineWidth"/> 200
+        20 <input type="range" min="20" max="500" value="5" v-model="changedOutlineWidth"
+                  @change="changeOutlineWidth"/> 500
       </label>
     </aside>
 

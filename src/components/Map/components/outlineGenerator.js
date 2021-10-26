@@ -4,7 +4,7 @@ function OutlineGenerator() {
   var thatBS = this;
 
   var outlineWidth = 100;
-  var squarePixel = 4;
+  var squarePixel = 5;
 
   function Rectangle(_rect) {
     var that = this;

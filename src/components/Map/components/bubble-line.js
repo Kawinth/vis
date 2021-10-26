@@ -26,9 +26,10 @@ class BubbleLine {
         this.opacity = 0.5;
         this.setAttribute(this.outlineGroup, {
             stroke: "black",
-            fill: "cornflowerblue",
+            fill: "#009ac0",
+            //fill: "white",
             'stroke-width': 4,
-            'stroke-linecap': 'round'
+            //'stroke-linecap': 'round'
         })
     }
 
@@ -53,6 +54,7 @@ class BubbleLine {
         let anchorPoints = this.pathGenerator.createOutline(
             pointArr
         );
+
         let outline = new PointPath(anchorPoints).transform([
             new ShapeSimplifier(0.0),
             new BSplineShapeGenerator(),
@@ -64,8 +66,17 @@ class BubbleLine {
         // outline is a path that can be used for the attribute d of a path element
         this.setAttribute(path, {
             d: outline,
-            opacity: 0.5
+            opacity: 0.7
         });
+
+        //未插值前
+        // let o1 = new PointPath(anchorPoints);
+        // let path2 = this.appendSVG(this.outlineGroup, "path");
+        // // outline is a path that can be used for the attribute d of a path element
+        // this.setAttribute(path2, {
+        //     d: o1.toString(),
+        //     opacity: 0.7
+        // });
         this.clearPoints();
     }
 

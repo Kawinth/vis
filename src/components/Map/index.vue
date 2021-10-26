@@ -15,10 +15,13 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 
 import {mapMutations, mapState} from "vuex";
 import "./components/heat-line.js";
+import HeatmapOverlay from "./components/leaflet-heatmap.js";
 import {BubbleLine} from "./components/bubble-line";
 
 import {deleteMarker, deletePipe, getList, getMarkerList, getPipe, updateMarker, updatePipe} from "@/api/pipe-network";
+
 import PointInfoEdit from "../OperationPanel/PointInfoEdit";
+import {getHouseList} from "../../api/leaflet-map";
 
 
 export default {
@@ -46,6 +49,7 @@ export default {
       markerGroup: L.featureGroup(),
       heatLineGroup: L.featureGroup(),
       ribbonGroup: L.featureGroup(),
+      heatmapLayer: null,
 
       //点数据信息
       pointInfo: {
@@ -54,7 +58,9 @@ export default {
         value: 0.0,
         weight: 0.0,
         visible: false
-      }
+      },
+      populationList: null,
+      houseList: null,
     };
   },
 
@@ -66,7 +72,8 @@ export default {
       lineVisible: (state) => state.view.lineVisible,
       ribbonVisible: (state) => state.view.ribbonVisible,
       heatLineVisible: (state) => state.view.heatLineVisible,
-      markerVisible: (state) => state.view.markerVisible
+      markerVisible: (state) => state.view.markerVisible,
+      houseVisible: (state) => state.view.houseVisible
     }),
     pipes: function () {
       return this.groupedPipeline.pipelines;
@@ -124,11 +131,18 @@ export default {
         this.ribbonGroup.clearLayers();
       }
     },
+    houseVisible: function (newV, oldV) {
+      if (newV) {
+        this.drawHeatmap();
+      } else {
+        this.map.removeLayer(this.heatmapLayer);
+      }
+    },
     serverChanged: function (newV, oldV) {
       console.log(
-        "%c[SUCCESS]",
-        "color: white; background: green;",
-        " 服务端状态改变了"
+          "%c[SUCCESS]",
+          "color: white; background: green;",
+          " 服务端状态改变了"
       );
       this.flushData();
       //TODO 是否清空
@@ -171,6 +185,14 @@ export default {
       //绘制管线
       for (let i in this.pipes) {
         let line;
+        for (const latLng of this.pipes[i].nodes) {
+          L.circle(latLng, {
+            color: "red",
+            fillColor: "yellow",
+            fillOpacity: 0.8,
+            radius: 100,
+          }).addTo(this.map);
+        }
         try {
           line = L.polyline(this.pipes[i].nodes, {
             color: this.pipes[i].lineColor,
@@ -214,6 +236,18 @@ export default {
     drawHeatLine() {
       let i = 0;
       for (let heatLine of this.heatLines) {
+        //绘制填充后的离散点
+        for (const latLng of heatLine.node) {
+          // L.circle(latLng, {
+          //   color: "blue",
+          //   fillColor: "blue",
+          //   fillOpacity: 0.8,
+          //   radius: 50,
+          // }).bindPopup((e) => {
+          //   return latLng[2].toString();
+          // }).addTo(this.map);
+        }
+        console.log(heatLine)
         let heatLineLayer = L.heatLine(heatLine.node, {
           min: 150,
           max: 350,
@@ -229,9 +263,9 @@ export default {
         });
         heatLineLayer.id = this.pipes[i++].id;
         heatLineLayer
-            .bindPopup((e) => {
-              return "HHHHHHH";
-            })
+            // .bindPopup((e) => {
+            //   return "HHHHHHH";
+            // })
             .addTo(this.heatLineGroup);
 
       }
@@ -243,6 +277,35 @@ export default {
       //let bounds = heatLineLayer.getBounds();
       //this.map.fitBounds(bounds);
 
+    },
+    drawHeatmap() {
+      getHouseList().then((res) => {
+        let houseData = {
+          max: 10000,
+          min: 1000,
+          data: res.data
+        }
+        let cfg = {
+          // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+          "radius": 0.008,
+          "maxOpacity": .8,
+          // scales the radius based on map zoom
+          "scaleRadius": true,
+          // if set to false the heatmap uses the global maximum for colorization
+          // if activated: uses the data maximum within the current map boundaries
+          //   (there will always be a red spot with useLocalExtremas true)
+          "useLocalExtrema": true,
+          // which field name in your data represents the latitude - default "lat"
+          latField: 'latitude',
+          // which field name in your data represents the longitude - default "lng"
+          lngField: 'longitude',
+          // which field name in your data represents the data value - default "value"
+          valueField: 'density'
+        };
+        this.heatmapLayer = new HeatmapOverlay(cfg);
+        this.heatmapLayer.setData(houseData);
+        this.heatmapLayer.addTo(this.map);
+      })
     },
     drawRibbon() {
       let mapSize = this.map.getPixelBounds().getSize();
@@ -447,8 +510,8 @@ export default {
      * 本方法更改默认的Icon
      */
     changeGeomanDefaultIcon(map) {
-      let markerIcon = require("@/assets/image/水厂.png");
-      let markerIcon2x = require("@/assets/image/水厂-2x.png");
+      let markerIcon = require("@/assets/image/合肥地铁.png");
+      let markerIcon2x = require("@/assets/image/合肥地铁-2x.png");
       let markerShadow = require("@/assets/image/marker-shadow.png");
       let DefaultIcon = L.icon({
         iconUrl: markerIcon,
@@ -628,8 +691,6 @@ export default {
         .addTo(map);
 
       this.manageLayerGroup(map);
-      //   this.map.removeLayer(normal)  // 移除图层
-      //map.on("click",(e)=>{console.log(e)});
       return map;
     },
 
