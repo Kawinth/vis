@@ -28,9 +28,6 @@ const mutations = {
   SET_INFO_VISIBLE: (state, visible) => {
     state.infoVisible = visible;
   },
-  SET_HEAT_LINE_NODES: (state, nodes) => {
-    state.focusHeatLineNodes = nodes;
-  },
   SET_LEAFLET_MAP: (state, map) => {
     state.leafletMap = map;
   },

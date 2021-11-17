@@ -1,14 +1,15 @@
 <template>
   <el-row id="nav" type="flex" align="middle">
     <el-col :span="7">
-      <span style="font-size: 2.5em;color: #6699CC">UppaVis:</span>
+      <span style="font-size: 2.3em;color: #6699CC">BubbleLine:</span>
       <span style="padding-left: 20px;font-size: 1.5em;">
-        <span style="color: #6699CC">U</span>rban <span style="color: #6699CC">p</span>ipeline
-        <span style="color: #6699CC">p</span>lanning
-        <span style="color: #6699CC">a</span>ssistant
+        <span style="color: #6699CC">L</span>inear
+        <span style="color: #6699CC">S</span>patial
+        <span style="color: #6699CC">D</span>ata
+        <span style="color: #6699CC">A</span>nalysis
       </span>
     </el-col>
-    <el-col :span="4" :offset="1" style="padding-left: 30px">
+    <el-col :span="3" :offset="1" style="padding-left: 30px">
       <el-autocomplete
           v-model="condition.site"
           popper-class="my-autocomplete"

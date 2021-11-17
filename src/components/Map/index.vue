@@ -21,7 +21,7 @@ import {BubbleLine} from "./components/bubble-line";
 import {deleteMarker, deletePipe, getList, getMarkerList, getPipe, updateMarker, updatePipe} from "@/api/pipe-network";
 
 import PointInfoEdit from "../OperationPanel/PointInfoEdit";
-import {getHouseList} from "../../api/leaflet-map";
+import {getPopulationList} from "../../api/leaflet-map";
 
 
 export default {
@@ -159,7 +159,8 @@ export default {
       setHeatLineLayer: 'view/commitHeatLineLayer',
       setEditingLine: 'view/commitEditingLineLayer',
       setOutlineGenerator: 'map/SET_OUTLINE_GENERATOR',
-      setRibbonNodes: 'map/SET_RIBBON_NODES'
+      setRibbonNodes: 'map/SET_RIBBON_NODES',
+      setPipeList: 'map/SET_PIPE_LIST',
     }),
     async flushData() {
       this.lineGroup.clearLayers();
@@ -168,9 +169,13 @@ export default {
       this.markerGroup.clearLayers();
 
       await getMarkerList(null).then((res) => (this.markers = res.data));
-      await getList(null).then((res) => (this.groupedPipeline = res.data));
+      await getList(null).then((res) => {
+        this.groupedPipeline = res.data;
+        this.setPipeList(res.data.pipelines);
+        console.log(res.data)
+      });
 
-      if (this.lineVisible){
+      if (this.lineVisible) {
         this.drawLine();
       }
       if (this.heatLineVisible) {
@@ -185,14 +190,14 @@ export default {
       //绘制管线
       for (let i in this.pipes) {
         let line;
-        for (const latLng of this.pipes[i].nodes) {
-          L.circle(latLng, {
-            color: "red",
-            fillColor: "yellow",
-            fillOpacity: 0.8,
-            radius: 100,
-          }).addTo(this.map);
-        }
+        // for (const latLng of this.pipes[i].nodes) {
+        //   L.circle(latLng, {
+        //     color: "red",
+        //     fillColor: "yellow",
+        //     fillOpacity: 0.8,
+        //     radius: 100,
+        //   }).addTo(this.map);
+        // }
         try {
           line = L.polyline(this.pipes[i].nodes, {
             color: this.pipes[i].lineColor,
@@ -247,7 +252,6 @@ export default {
           //   return latLng[2].toString();
           // }).addTo(this.map);
         }
-        console.log(heatLine)
         let heatLineLayer = L.heatLine(heatLine.node, {
           min: 150,
           max: 350,
@@ -279,7 +283,7 @@ export default {
 
     },
     drawHeatmap() {
-      getHouseList().then((res) => {
+      getPopulationList().then((res) => {
         let houseData = {
           max: 10000,
           min: 1000,

@@ -28,7 +28,7 @@ class BubbleLine {
             stroke: "black",
             fill: "#009ac0",
             //fill: "white",
-            'stroke-width': 4,
+            'stroke-width': 2,
             //'stroke-linecap': 'round'
         })
     }
@@ -66,7 +66,7 @@ class BubbleLine {
         // outline is a path that can be used for the attribute d of a path element
         this.setAttribute(path, {
             d: outline,
-            opacity: 0.7
+            opacity: 0.3
         });
 
         //未插值前

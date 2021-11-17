@@ -56,13 +56,37 @@
         20 <input type="range" min="20" max="500" value="5" v-model="changedOutlineWidth"
                   @change="changeOutlineWidth"/> 500
       </label>
+      <el-time-picker
+          is-range
+          v-model="time"
+          range-separator="至"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+          placeholder="选择时间范围">
+      </el-time-picker>
     </aside>
 
+
+    <el-collapse accordion v-if="pipeLineList.length !== 0">
+      <el-collapse-item v-for="(item, i) in pipeLineList">
+
+        <template slot="title">
+          <span style="width: 10px"></span>
+          {{ item.name }}
+          <span style="width: 10px"></span>
+          <div style="width: 100px; height:2px;display: inline-block;" :style=" {background: item.lineColor}"></div>
+        </template>
+        描述信息
+      </el-collapse-item>
+    </el-collapse>
+    <div id="echartsLine" style="width: 600px;height:350px;"></div>
   </section>
 </template>
 
 <script>
 import * as L from "leaflet";
+import {option} from "./Components/options";
+import * as echarts from 'echarts';
 
 export default {
   name: "index",
@@ -74,7 +98,8 @@ export default {
       color3: "#ff0000",
       min: 0,
       max: 250,
-      changedOutlineWidth: 20,
+      time: [new Date(2021, 9, 10, 8, 40), new Date(2021, 9, 10, 9, 40)],
+      changedOutlineWidth: 20
     }
   },
   computed: {
@@ -95,6 +120,9 @@ export default {
     },
     map() {
       return this.$store.state.map.leafletMap;
+    },
+    pipeLineList() {
+      return this.$store.state.map.pipeLineList
     }
   },
   methods: {
@@ -138,6 +166,11 @@ export default {
         this.outlineGenerator.draw();
       }
     }
+  },
+  mounted() {
+    console.log(document.getElementById('echartsLine'))
+    let myChart = echarts.init(document.getElementById('echartsLine'));
+    myChart.setOption(option);
   }
 }
 </script>
@@ -148,14 +181,18 @@ section {
   /* margin: 1.5em auto; */
   text-align: center;
 }
+
 aside {
   margin: 1.5em 0;
 }
+
 label {
   display: inline-block;
   padding: 0.5em;
 }
+
 input {
   vertical-align: text-bottom;
 }
+
 </style>
